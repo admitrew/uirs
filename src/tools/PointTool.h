@@ -1,15 +1,18 @@
 #pragma once
+
 #include "Tool.h"
-#include "core/TherionTypes.h"
 
-class PointTool : public Tool {
+#include <QString>
+
+class PointTool : public Tool
+{
 public:
-    explicit PointTool(PointType type);
+    explicit PointTool(const QString& type = "station");
 
-    void mousePress(EditorScene*, QGraphicsSceneMouseEvent*) override;
+    void mousePress(EditorScene* scene, QGraphicsSceneMouseEvent* event) override;
 
-    void setType(PointType type);
+    void setType(const QString& type);
 
 private:
-    PointType m_type;
+    QString m_type;
 };

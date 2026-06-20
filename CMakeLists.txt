@@ -19,7 +19,7 @@ add_executable(therion_preview
     src/ui/StyleManager.cpp
     src/core/TherionTypes.cpp
     src/parser/Th2Writer.cpp
-
+    src/ui/EditorMainWindow.cpp
 )
 
 target_link_libraries(therion_preview

@@ -2,7 +2,6 @@
 
 #include <QString>
 #include <QVector>
-#include <QPointF>
 
 #include "../ui/LineItem.h"
 #include "../ui/PointItem.h"
@@ -18,8 +17,4 @@ public:
 private:
     QVector<LineItem*> m_lines;
     QVector<PointItem*> m_points;
-
-    LineType parseLineType(const QString& typeStr) const;
-    PointType parsePointType(const QString& typeStr) const;
 };
-

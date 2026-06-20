@@ -1,11 +1,36 @@
 #include "PointItem.h"
+#include "StyleManager.h"
 
-PointItem::PointItem(QPointF p, PointType t): type(t){
-    setRect(-3,-3,6,6);
-    setPos(p);
+#include <QPen>
+
+PointItem::PointItem(const QPointF& position, const QString& therionType)
+    : m_type(therionType)
+{
+    setRect(-3, -3, 6, 6);
+    setPos(position);
+
+    setBrush(StyleManager::pointBrush(m_type));
+    setPen(QPen(Qt::black, 1));
+
+    setFlag(QGraphicsItem::ItemIsSelectable);
+    setFlag(QGraphicsItem::ItemIsMovable);
 }
 
-QString PointItem::toTh2() const {
+QString PointItem::type() const
+{
+    return m_type;
+}
+
+void PointItem::setType(const QString& therionType)
+{
+    m_type = therionType;
+    setBrush(StyleManager::pointBrush(m_type));
+}
+
+QString PointItem::toTh2() const
+{
     return QString("point %1 %2 %3")
-        .arg(pos().x()).arg(pos().y()).arg(toTherion(type));
+        .arg(pos().x())
+        .arg(-pos().y())
+        .arg(m_type);
 }

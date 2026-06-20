@@ -1,12 +1,21 @@
 #pragma once
+
 #include <QGraphicsEllipseItem>
-#include "../core/TherionTypes.h"
+#include <QPointF>
+#include <QString>
+
 #include "../core/Th2Serializable.h"
 
-class PointItem : public QGraphicsEllipseItem, public Th2Serializable {
+class PointItem : public QGraphicsEllipseItem, public Th2Serializable
+{
 public:
-    PointItem(QPointF, PointType);
+    PointItem(const QPointF& position, const QString& therionType);
+
+    QString type() const;
+    void setType(const QString& therionType);
+
     QString toTh2() const override;
+
 private:
-    PointType type;
+    QString m_type;
 };

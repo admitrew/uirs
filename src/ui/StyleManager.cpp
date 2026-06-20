@@ -1,42 +1,38 @@
 #include "StyleManager.h"
-#include "LineItem.h"
-#include "PointItem.h"
+
 #include <Qt>
 
-QPen StyleManager::linePen(LineType type)
+QPen StyleManager::linePen(const QString& type)
 {
     QPen pen;
     pen.setWidthF(1.5);
 
-    switch (type) {
-    case LineType::Wall:
+    if (type == "wall") {
         pen.setColor(Qt::black);
         pen.setWidthF(2.5);
-        break;
-
-    case LineType::Water:
+    } else if (type == "water") {
         pen.setColor(Qt::blue);
         pen.setStyle(Qt::DashLine);
-        break;
-
-    default:
+    } else {
         pen.setColor(Qt::darkGray);
-        break;
     }
 
     return pen;
 }
 
-QBrush StyleManager::pointBrush(PointType type)
+QBrush StyleManager::pointBrush(const QString& type)
 {
-    switch (type) {
-    case PointType::Station:
+    if (type == "station") {
         return QBrush(Qt::red);
-
-    case PointType::Label:
-        return QBrush(Qt::darkGreen);
-
-    default:
-        return QBrush(Qt::gray);
     }
+
+    if (type == "label") {
+        return QBrush(Qt::darkGreen);
+    }
+
+    if (type == "entrance") {
+        return QBrush(Qt::blue);
+    }
+
+    return QBrush(Qt::gray);
 }

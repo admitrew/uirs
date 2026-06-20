@@ -2,13 +2,11 @@
 
 #include <QPen>
 #include <QBrush>
-
-enum class LineType;
-enum class PointType;
+#include <QString>
 
 class StyleManager
 {
 public:
-    static QPen linePen(LineType type);
-    static QBrush pointBrush(PointType type);
+    static QPen linePen(const QString& type);
+    static QBrush pointBrush(const QString& type);
 };

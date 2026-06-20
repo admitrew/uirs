@@ -1,7 +1,11 @@
 #pragma once
-#include <QGraphicsScene>
 
-class Th2Writer {
+#include <QString>
+
+class QGraphicsScene;
+
+class Th2Writer
+{
 public:
-    static void write(QGraphicsScene*, const QString&);
+    static void write(QGraphicsScene* scene, const QString& filePath);
 };

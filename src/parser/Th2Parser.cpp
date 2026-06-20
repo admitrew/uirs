@@ -3,67 +3,100 @@
 #include <QFile>
 #include <QTextStream>
 #include <QStringList>
+#include <QPointF>
 
 bool Th2Parser::parseFile(const QString& filePath)
 {
     QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return false;
+    }
+
+    m_lines.clear();
+    m_points.clear();
 
     QTextStream in(&file);
 
     bool inLine = false;
-    LineType currentType = LineType::Other;
-    QVector<QPointF> points;
+    QString currentLineType;
+    QVector<QPointF> currentLinePoints;
 
     while (!in.atEnd()) {
         QString line = in.readLine().trimmed();
 
-        if (line.startsWith("point")) {
-            // point station x y
-            QStringList parts = line.split(' ', Qt::SkipEmptyParts);
+        if (line.isEmpty() || line.startsWith("#")) {
+            continue;
+        }
+
+        QStringList parts = line.split(' ', Qt::SkipEmptyParts);
+
+        if (parts.isEmpty()) {
+            continue;
+        }
+
+        if (parts[0] == "point") {
             if (parts.size() >= 4) {
-                bool okX, okY;
-                double x = parts[2].toDouble(&okX);
-                double y = parts[3].toDouble(&okY);
+                QString pointType;
+                double x = 0;
+                double y = 0;
+                bool okX = false;
+                bool okY = false;
+
+                // Основной формат Therion:
+                // point x y type
+                x = parts[1].toDouble(&okX);
+                y = parts[2].toDouble(&okY);
 
                 if (okX && okY) {
-                    auto type = parsePointType(parts[1]);
-                    m_points.append(new PointItem(QPointF(x, -y), type));
+                    pointType = parts[3];
+                } else {
+                    // Старый тестовый вариант:
+                    // point type x y
+                    pointType = parts[1];
+                    x = parts[2].toDouble(&okX);
+                    y = parts[3].toDouble(&okY);
+                }
+
+                if (okX && okY) {
+                    m_points.append(new PointItem(QPointF(x, -y), pointType));
                 }
             }
+
             continue;
         }
 
-        if (line.startsWith("line")) {
-            // line wall / line water
-            QStringList parts = line.split(' ');
+        if (parts[0] == "line") {
             if (parts.size() >= 2) {
-                currentType = parseLineType(parts[1]);
-                points.clear();
+                currentLineType = parts[1];
+                currentLinePoints.clear();
                 inLine = true;
             }
+
             continue;
         }
 
-        if (line == "endline" && inLine) {
-            if (points.size() >= 2) {
-                m_lines.append(new LineItem(points, currentType));
+        if (parts[0] == "endline") {
+            if (inLine && currentLinePoints.size() >= 2) {
+                m_lines.append(new LineItem(currentLinePoints, currentLineType));
             }
+
+            currentLinePoints.clear();
+            currentLineType.clear();
             inLine = false;
+
             continue;
         }
 
-        if (inLine) {
-            // координаты: x y
-            QStringList coords = line.split(' ', Qt::SkipEmptyParts);
-            if (coords.size() >= 2) {
-                bool okX, okY;
-                double x = coords[0].toDouble(&okX);
-                double y = coords[1].toDouble(&okY);
+        if (inLine && parts.size() >= 2) {
+            bool okX = false;
+            bool okY = false;
 
-                if (okX && okY)
-                    points.append(QPointF(x, -y)); // инверсия Y для сцены
+            double x = parts[0].toDouble(&okX);
+            double y = parts[1].toDouble(&okY);
+
+            if (okX && okY) {
+                currentLinePoints.append(QPointF(x, -y));
             }
         }
     }
@@ -76,25 +109,7 @@ const QVector<LineItem*>& Th2Parser::lines() const
     return m_lines;
 }
 
-LineType Th2Parser::parseLineType(const QString& typeStr) const
-{
-    if (typeStr == "wall")
-        return LineType::Wall;
-    if (typeStr == "water")
-        return LineType::Water;
-    return LineType::Other;
-}
-
 const QVector<PointItem*>& Th2Parser::points() const
 {
     return m_points;
-}
-
-PointType Th2Parser::parsePointType(const QString& typeStr) const
-{
-    if (typeStr == "station")
-        return PointType::Station;
-    if (typeStr == "label")
-        return PointType::Label;
-    return PointType::Other;
 }
