@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QString>
 
 class QGraphicsView;
 class MapScene;
@@ -13,6 +14,11 @@ public:
     explicit EditorMainWindow(QWidget* parent = nullptr);
 
 private:
+    void createMenus();
+    void openTh2File();
+    void loadTh2File(const QString& filePath);
+    void fitSceneToView();
+
     MapScene* m_scene;
     QGraphicsView* m_view;
 };
