@@ -11,8 +11,8 @@ class PointItem : public QGraphicsEllipseItem, public Th2Serializable
 public:
     PointItem(const QPointF& position, const QString& therionType);
 
-    QString type() const;
-    void setType(const QString& therionType);
+    QString therionType() const;
+    void setTherionType(const QString& therionType);
 
     QString toTh2() const override;
 

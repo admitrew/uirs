@@ -16,12 +16,12 @@ PointItem::PointItem(const QPointF& position, const QString& therionType)
     setFlag(QGraphicsItem::ItemIsMovable);
 }
 
-QString PointItem::type() const
+QString PointItem::therionType() const
 {
     return m_type;
 }
 
-void PointItem::setType(const QString& therionType)
+void PointItem::setTherionType(const QString& therionType)
 {
     m_type = therionType;
     setBrush(StyleManager::pointBrush(m_type));
