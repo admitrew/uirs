@@ -21,3 +21,10 @@
 946	19643	7908516990009327	CMakeFiles/therion_preview.dir/therion_preview_autogen/mocs_compilation.cpp.obj	e17fcde5d59a6e24
 948	19700	7908516990029224	CMakeFiles/therion_preview.dir/src/ui/MapScene.cpp.obj	8ee38259fd369524
 951	19704	7908516990059268	CMakeFiles/therion_preview.dir/src/ui/PointItem.cpp.obj	391238cf2b09eb59
+63	215	8036022539650692	therion_preview_autogen/timestamp	707ffe4c384589b1
+63	215	8036022539650692	therion_preview_autogen/mocs_compilation.cpp	707ffe4c384589b1
+63	215	8036022539650692	C:/speleoproj/speleoproj/build/Desktop_Qt_6_9_1_MinGW_64_bit-Debug/therion_preview_autogen/timestamp	707ffe4c384589b1
+63	215	8036022539650692	C:/speleoproj/speleoproj/build/Desktop_Qt_6_9_1_MinGW_64_bit-Debug/therion_preview_autogen/mocs_compilation.cpp	707ffe4c384589b1
+218	24717	8036022541206022	CMakeFiles/therion_preview.dir/src/ui/PointItem.cpp.obj	391238cf2b09eb59
+221	24758	8036022541226019	CMakeFiles/therion_preview.dir/src/ui/StyleManager.cpp.obj	7e9d44a550b54349
+222	24793	8036022541246075	CMakeFiles/therion_preview.dir/src/core/TherionTypes.cpp.obj	9778b94de1773c9b
