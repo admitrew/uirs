@@ -7,6 +7,19 @@
 
 #include "../core/Th2Serializable.h"
 
+struct LineNode
+{
+    enum class Kind {
+        Point,
+        Bezier,
+        Command
+    };
+
+    Kind kind;
+    QVector<QPointF> points;
+    QString rawText;
+};
+
 class LineItem : public QGraphicsPathItem, public Th2Serializable
 {
 public:
@@ -14,6 +27,10 @@ public:
                       const QString& options = QString());
 
     LineItem(const QVector<QPointF>& points,
+             const QString& therionType,
+             const QString& options = QString());
+
+    LineItem(const QVector<LineNode>& nodes,
              const QString& therionType,
              const QString& options = QString());
 
@@ -35,5 +52,5 @@ private:
 
     QString m_type;
     QString m_options;
-    QVector<QPointF> m_points;
+    QVector<LineNode> m_nodes;
 };

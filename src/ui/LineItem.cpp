@@ -15,8 +15,25 @@ LineItem::LineItem(const QVector<QPointF>& points,
                    const QString& therionType,
                    const QString& options)
     : m_type(therionType),
+      m_options(options)
+{
+    for (const QPointF& point : points) {
+        LineNode node;
+        node.kind = LineNode::Kind::Point;
+        node.points.append(point);
+        m_nodes.append(node);
+    }
+
+    setPen(StyleManager::linePen(m_type));
+    rebuildPath();
+}
+
+LineItem::LineItem(const QVector<LineNode>& nodes,
+                   const QString& therionType,
+                   const QString& options)
+    : m_type(therionType),
       m_options(options),
-      m_points(points)
+      m_nodes(nodes)
 {
     setPen(StyleManager::linePen(m_type));
     rebuildPath();
@@ -24,7 +41,11 @@ LineItem::LineItem(const QVector<QPointF>& points,
 
 void LineItem::addPoint(const QPointF& p)
 {
-    m_points.append(p);
+    LineNode node;
+    node.kind = LineNode::Kind::Point;
+    node.points.append(p);
+
+    m_nodes.append(node);
     rebuildPath();
 }
 
@@ -35,7 +56,17 @@ void LineItem::updateLastPoint(const QPointF& p)
 
 QVector<QPointF> LineItem::points() const
 {
-    return m_points;
+    QVector<QPointF> result;
+
+    for (const LineNode& node : m_nodes) {
+        if (node.kind == LineNode::Kind::Point && !node.points.isEmpty()) {
+            result.append(node.points.first());
+        } else if (node.kind == LineNode::Kind::Bezier && node.points.size() == 3) {
+            result.append(node.points.last());
+        }
+    }
+
+    return result;
 }
 
 QString LineItem::therionType() const
@@ -62,15 +93,36 @@ void LineItem::setOptions(const QString& options)
 void LineItem::rebuildPath(const QPointF* previewPoint)
 {
     QPainterPath path;
+    bool hasCurrentPoint = false;
 
-    if (!m_points.isEmpty()) {
-        path.moveTo(m_points.first());
+    for (const LineNode& node : m_nodes) {
+        if (node.kind == LineNode::Kind::Point && !node.points.isEmpty()) {
+            QPointF p = node.points.first();
 
-        for (int i = 1; i < m_points.size(); ++i) {
-            path.lineTo(m_points[i]);
+            if (!hasCurrentPoint) {
+                path.moveTo(p);
+                hasCurrentPoint = true;
+            } else {
+                path.lineTo(p);
+            }
+        } else if (node.kind == LineNode::Kind::Bezier && node.points.size() == 3) {
+            QPointF c1 = node.points[0];
+            QPointF c2 = node.points[1];
+            QPointF end = node.points[2];
+
+            if (!hasCurrentPoint) {
+                path.moveTo(end);
+                hasCurrentPoint = true;
+            } else {
+                path.cubicTo(c1, c2, end);
+            }
         }
+    }
 
-        if (previewPoint) {
+    if (previewPoint) {
+        if (!hasCurrentPoint) {
+            path.moveTo(*previewPoint);
+        } else {
             path.lineTo(*previewPoint);
         }
     }
@@ -88,8 +140,31 @@ QString LineItem::toTh2() const
 
     result += "\n";
 
-    for (const QPointF& p : m_points) {
-        result += QString("  %1 %2\n").arg(p.x()).arg(-p.y());
+    for (const LineNode& node : m_nodes) {
+        if (!node.rawText.trimmed().isEmpty()) {
+            result += "  " + node.rawText.trimmed() + "\n";
+            continue;
+        }
+
+        if (node.kind == LineNode::Kind::Point && !node.points.isEmpty()) {
+            QPointF p = node.points.first();
+
+            result += QString("  %1 %2\n")
+                .arg(p.x())
+                .arg(-p.y());
+        } else if (node.kind == LineNode::Kind::Bezier && node.points.size() == 3) {
+            QPointF c1 = node.points[0];
+            QPointF c2 = node.points[1];
+            QPointF end = node.points[2];
+
+            result += QString("  %1 %2 %3 %4 %5 %6\n")
+                .arg(c1.x())
+                .arg(-c1.y())
+                .arg(c2.x())
+                .arg(-c2.y())
+                .arg(end.x())
+                .arg(-end.y());
+        }
     }
 
     result += "endline\n";

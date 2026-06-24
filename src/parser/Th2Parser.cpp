@@ -14,6 +14,24 @@ static QString collectOptions(const QStringList& parts, int startIndex)
     return parts.mid(startIndex).join(' ');
 }
 
+static bool parseDoubleList(const QStringList& parts, QVector<double>& values)
+{
+    values.clear();
+
+    for (const QString& part : parts) {
+        bool ok = false;
+        double value = part.toDouble(&ok);
+
+        if (!ok) {
+            return false;
+        }
+
+        values.append(value);
+    }
+
+    return true;
+}
+
 bool Th2Parser::parseFile(const QString& filePath)
 {
     QFile file(filePath);
@@ -30,7 +48,7 @@ bool Th2Parser::parseFile(const QString& filePath)
     bool inLine = false;
     QString currentLineType;
     QString currentLineOptions;
-    QVector<QPointF> currentLinePoints;
+    QVector<LineNode> currentLineNodes;
 
     while (!in.atEnd()) {
         QString line = in.readLine().trimmed();
@@ -89,7 +107,7 @@ bool Th2Parser::parseFile(const QString& filePath)
             if (parts.size() >= 2) {
                 currentLineType = parts[1];
                 currentLineOptions = collectOptions(parts, 2);
-                currentLinePoints.clear();
+                currentLineNodes.clear();
                 inLine = true;
             }
 
@@ -97,11 +115,11 @@ bool Th2Parser::parseFile(const QString& filePath)
         }
 
         if (parts[0] == "endline") {
-            if (inLine && currentLinePoints.size() >= 2) {
-                m_lines.append(new LineItem(currentLinePoints, currentLineType, currentLineOptions));
+            if (inLine) {
+                m_lines.append(new LineItem(currentLineNodes, currentLineType, currentLineOptions));
             }
 
-            currentLinePoints.clear();
+            currentLineNodes.clear();
             currentLineType.clear();
             currentLineOptions.clear();
             inLine = false;
@@ -109,16 +127,42 @@ bool Th2Parser::parseFile(const QString& filePath)
             continue;
         }
 
-        if (inLine && parts.size() >= 2) {
-            bool okX = false;
-            bool okY = false;
+        if (inLine) {
+            QVector<double> values;
 
-            double x = parts[0].toDouble(&okX);
-            double y = parts[1].toDouble(&okY);
+            if (parseDoubleList(parts, values)) {
+                if (values.size() == 2) {
+                    LineNode node;
+                    node.kind = LineNode::Kind::Point;
+                    node.points.append(QPointF(values[0], -values[1]));
+                    node.rawText = line;
 
-            if (okX && okY) {
-                currentLinePoints.append(QPointF(x, -y));
+                    currentLineNodes.append(node);
+                } else if (values.size() == 6) {
+                    LineNode node;
+                    node.kind = LineNode::Kind::Bezier;
+                    node.points.append(QPointF(values[0], -values[1]));
+                    node.points.append(QPointF(values[2], -values[3]));
+                    node.points.append(QPointF(values[4], -values[5]));
+                    node.rawText = line;
+
+                    currentLineNodes.append(node);
+                } else {
+                    LineNode node;
+                    node.kind = LineNode::Kind::Command;
+                    node.rawText = line;
+
+                    currentLineNodes.append(node);
+                }
+            } else {
+                LineNode node;
+                node.kind = LineNode::Kind::Command;
+                node.rawText = line;
+
+                currentLineNodes.append(node);
             }
+
+            continue;
         }
     }
 
