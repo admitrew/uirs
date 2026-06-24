@@ -16,6 +16,7 @@ public:
 private:
     void createMenus();
     void openTh2File();
+    void saveTh2FileAs();
     void loadTh2File(const QString& filePath);
     void fitSceneToView();
 

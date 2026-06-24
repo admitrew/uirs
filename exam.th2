@@ -1,0 +1,222 @@
+scrap scrap1
+line border
+  569.75 727
+  571.75 728.25
+  577.5 744
+endline
+
+line border -id l49-556-800
+  561.75 755
+  549 833
+  59 1059
+  23 1006
+  532 712
+  554.75 731.5
+endline
+
+line border -id l45-555-741 -reverse on
+  561.75 755
+  557 753.25
+  553 736.25
+endline
+
+line wall
+  1170 79.5
+  1174 80
+  1180.5 62
+endline
+
+line wall
+  1076 195
+  1103 200
+  1139 205
+  1149.5 193
+  1159 147.5
+  1170.5 104.5
+  1174 91.5
+endline
+
+line floor-step
+  587 718
+  599 725.5
+endline
+
+line floor-step
+  772.5 613.5
+  785 614
+endline
+
+line floor-step
+  831 487.5
+  850 483
+endline
+
+line floor-step
+  965.5 405
+  978.5 415.5
+endline
+
+line floor-step
+  1011 391.5
+  1036.5 398.5
+endline
+
+line wall
+  41.4194 1019.3
+  51 1012
+  74 995
+  108 976
+  150 951
+  185 937
+  230 922
+  283 912
+  331 890
+  355 855
+  393 823
+  424 774
+  506 749.5
+  594.96 721.01
+  705 675
+  749 635
+  764 618
+  781 606
+  806 558
+  826.5 521.5
+  837.38 491.54
+  844.5 479
+  830.62 466.09
+  865 447
+  917.5 421.5
+  1001.5 402.5
+  1022.5 398.5
+  1033.5 375
+  1075.5 337.5
+  1091.5 341
+  1103.5 317.5
+  1124.5 284.5
+  1119.5 270.5
+  1081 259.5
+endline
+
+line wall
+  1215 52
+  1206 83
+  1200.57 113.03
+  1171 228
+  1149 300
+endline
+
+line border
+  873 440
+  855.5 456
+endline
+
+line rock-border -close on
+  721.5 664
+  730 667
+  737.5 659
+  730.5 655
+  721.5 664
+endline
+
+line rock-border -close on
+  1003 404.5
+  1014.5 419.5
+  985.5 431.5
+  978 413
+  1003 404.5
+endline
+
+line rock-border -close on
+  1037.5 391.5
+  1061.5 407.5
+  1094 360
+  1065.5 351
+  1037.5 391.5
+endline
+
+line border
+  1146.5 199
+  1142.5 212
+  1134 257.5
+endline
+
+line border
+  666 719
+  684 706.5
+  699 688
+  723.5 677.5
+  742 655.5
+  763 653.5
+  764.5 672.5
+  775 683.5
+endline
+
+line wall -subtype presumed
+  1101 396
+  1104 376.5
+endline
+
+line wall -subtype presumed
+  1124.5 347.5
+  1118.5 362
+endline
+
+line wall
+  1114.5 347
+  1103.83 366.95
+  1078.5 413.5
+  1033 423
+  992 427
+  972 440
+  939 443
+  866 475
+  857 509
+  841 550
+  779 635
+  799 644
+  783 700
+  740 691
+  694 703
+  624 734
+  531 766
+  469 792
+  443 800
+  422 815
+  388 848
+  366 879
+  329 922
+  280 937
+  242 940
+  199 960
+  147 978
+  116 1002
+  74.82 1019.57
+endline
+
+point 521.25 757.5 water-flow -orientation 294.6
+point 566.75 740.5 flowstone -orientation 287.4
+point 1130.5 303 water-flow -orientation 344.8
+point 1166.5 189.5 water-flow -orientation 344.5
+point 1127.5 372.5 water-flow -orientation 347.9
+point 1196.5 62 water-flow -orientation 347.9
+point 542.5 699.5 label -orientation 17.9 -scale l -text "Short Dry Way"
+point 609.5 770.5 label -scale s -text "C1m"
+point 1054 450.5 label -scale s -text "C1m"
+point 984.5 471 label -scale s -text "C1m"
+point 902 527.5 label -scale s -text "<center>step<br>(C0.5m)"
+point 1102 231.5 gradient -orientation 70.5
+point 41.4194 1019.3 station -name 3.13
+point 203.659 933.035 station -name 3.12
+point 326.179 920.195 station -name 3.11
+point 427.359 784.845 station -name 3.10
+point 471.019 787.915 station -name 3.9
+point 703.659 675.985 station -name 3.8
+point 791.809 618.545 station -name 3.7
+point 868.659 442.915 station -name 3.6
+point 1148.9 76.4951 station -name 3.4
+point 1187.6 93.3451 station -name 3.3
+point 1046.18 413.705 station -name 3.5
+point 1160.71 258.035 station -name 3.2
+point 1069.73 230.705 station -name 3.1
+endscrap

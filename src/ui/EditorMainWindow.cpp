@@ -2,6 +2,7 @@
 #include "MapScene.h"
 
 #include "../parser/Th2Parser.h"
+#include "../parser/Th2Writer.h"
 
 #include <QGraphicsView>
 #include <QFileDialog>
@@ -34,7 +35,39 @@ void EditorMainWindow::createMenus()
     QAction* openAction = fileMenu->addAction("Открыть .th2");
     openAction->setShortcut(QKeySequence::Open);
 
+    QAction* saveAsAction = fileMenu->addAction("Сохранить как .th2");
+    saveAsAction->setShortcut(QKeySequence::SaveAs);
+
     connect(openAction, &QAction::triggered, this, &EditorMainWindow::openTh2File);
+    connect(saveAsAction, &QAction::triggered, this, &EditorMainWindow::saveTh2FileAs);
+}
+
+void EditorMainWindow::saveTh2FileAs()
+{
+    QString filePath = QFileDialog::getSaveFileName(
+        this,
+        "Сохранить файл Therion",
+        QString(),
+        "Therion scraps (*.th2);;Все файлы (*.*)"
+    );
+
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    if (!filePath.endsWith(".th2", Qt::CaseInsensitive)) {
+        filePath += ".th2";
+    }
+
+    Th2Writer::write(m_scene, filePath);
+
+    qDebug() << "Файл сохранён:" << filePath;
+
+    QMessageBox::information(
+        this,
+        "Сохранение завершено",
+        "Файл сохранён:\n" + filePath
+    );
 }
 
 void EditorMainWindow::openTh2File()
