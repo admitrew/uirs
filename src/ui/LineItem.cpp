@@ -1,18 +1,24 @@
 #include "LineItem.h"
+#include "StyleManager.h"
 
 #include <QPainterPath>
-#include <QPen>
 
-LineItem::LineItem(const QString& therionType)
-    : m_type(therionType)
+LineItem::LineItem(const QString& therionType,
+                   const QString& options)
+    : m_type(therionType),
+      m_options(options)
 {
-    setPen(QPen(Qt::black, 1));
+    setPen(StyleManager::linePen(m_type));
 }
 
-LineItem::LineItem(const QVector<QPointF>& points, const QString& therionType)
-    : m_type(therionType), m_points(points)
+LineItem::LineItem(const QVector<QPointF>& points,
+                   const QString& therionType,
+                   const QString& options)
+    : m_type(therionType),
+      m_options(options),
+      m_points(points)
 {
-    setPen(QPen(Qt::black, 1));
+    setPen(StyleManager::linePen(m_type));
     rebuildPath();
 }
 
@@ -30,6 +36,27 @@ void LineItem::updateLastPoint(const QPointF& p)
 QVector<QPointF> LineItem::points() const
 {
     return m_points;
+}
+
+QString LineItem::therionType() const
+{
+    return m_type;
+}
+
+void LineItem::setTherionType(const QString& therionType)
+{
+    m_type = therionType;
+    setPen(StyleManager::linePen(m_type));
+}
+
+QString LineItem::options() const
+{
+    return m_options;
+}
+
+void LineItem::setOptions(const QString& options)
+{
+    m_options = options;
 }
 
 void LineItem::rebuildPath(const QPointF* previewPoint)
@@ -53,12 +80,19 @@ void LineItem::rebuildPath(const QPointF* previewPoint)
 
 QString LineItem::toTh2() const
 {
-    QString result = "line " + m_type + "\n";
+    QString result = "line " + m_type;
+
+    if (!m_options.trimmed().isEmpty()) {
+        result += " " + m_options.trimmed();
+    }
+
+    result += "\n";
 
     for (const QPointF& p : m_points) {
         result += QString("  %1 %2\n").arg(p.x()).arg(-p.y());
     }
 
     result += "endline\n";
+
     return result;
 }

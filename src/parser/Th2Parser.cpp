@@ -5,6 +5,15 @@
 #include <QStringList>
 #include <QPointF>
 
+static QString collectOptions(const QStringList& parts, int startIndex)
+{
+    if (startIndex >= parts.size()) {
+        return QString();
+    }
+
+    return parts.mid(startIndex).join(' ');
+}
+
 bool Th2Parser::parseFile(const QString& filePath)
 {
     QFile file(filePath);
@@ -20,6 +29,7 @@ bool Th2Parser::parseFile(const QString& filePath)
 
     bool inLine = false;
     QString currentLineType;
+    QString currentLineOptions;
     QVector<QPointF> currentLinePoints;
 
     while (!in.atEnd()) {
@@ -38,28 +48,37 @@ bool Th2Parser::parseFile(const QString& filePath)
         if (parts[0] == "point") {
             if (parts.size() >= 4) {
                 QString pointType;
+                QString pointOptions;
+
                 double x = 0;
                 double y = 0;
+
                 bool okX = false;
                 bool okY = false;
 
                 // Основной формат Therion:
-                // point x y type
+                // point x y type [options]
                 x = parts[1].toDouble(&okX);
                 y = parts[2].toDouble(&okY);
 
                 if (okX && okY) {
                     pointType = parts[3];
+                    pointOptions = collectOptions(parts, 4);
                 } else {
                     // Старый тестовый вариант:
-                    // point type x y
+                    // point type x y [options]
                     pointType = parts[1];
+
                     x = parts[2].toDouble(&okX);
                     y = parts[3].toDouble(&okY);
+
+                    if (okX && okY) {
+                        pointOptions = collectOptions(parts, 4);
+                    }
                 }
 
                 if (okX && okY) {
-                    m_points.append(new PointItem(QPointF(x, -y), pointType));
+                    m_points.append(new PointItem(QPointF(x, -y), pointType, pointOptions));
                 }
             }
 
@@ -69,6 +88,7 @@ bool Th2Parser::parseFile(const QString& filePath)
         if (parts[0] == "line") {
             if (parts.size() >= 2) {
                 currentLineType = parts[1];
+                currentLineOptions = collectOptions(parts, 2);
                 currentLinePoints.clear();
                 inLine = true;
             }
@@ -78,11 +98,12 @@ bool Th2Parser::parseFile(const QString& filePath)
 
         if (parts[0] == "endline") {
             if (inLine && currentLinePoints.size() >= 2) {
-                m_lines.append(new LineItem(currentLinePoints, currentLineType));
+                m_lines.append(new LineItem(currentLinePoints, currentLineType, currentLineOptions));
             }
 
             currentLinePoints.clear();
             currentLineType.clear();
+            currentLineOptions.clear();
             inLine = false;
 
             continue;
