@@ -42,16 +42,33 @@ bool Th2Parser::parseFile(const QString& filePath)
 
     m_lines.clear();
     m_points.clear();
+    m_headerLines.clear();
+    m_scrapLine.clear();
+    m_endScrapLine.clear();
 
     QTextStream in(&file);
 
+    bool inScrap = false;
     bool inLine = false;
+
     QString currentLineType;
     QString currentLineOptions;
     QVector<LineNode> currentLineNodes;
 
     while (!in.atEnd()) {
-        QString line = in.readLine().trimmed();
+        QString rawLine = in.readLine();
+        QString line = rawLine.trimmed();
+
+        if (!inScrap) {
+            if (line.startsWith("scrap ")) {
+                m_scrapLine = line;
+                inScrap = true;
+                continue;
+            }
+
+            m_headerLines.append(rawLine);
+            continue;
+        }
 
         if (line.isEmpty() || line.startsWith("#")) {
             continue;
@@ -60,6 +77,11 @@ bool Th2Parser::parseFile(const QString& filePath)
         QStringList parts = line.split(' ', Qt::SkipEmptyParts);
 
         if (parts.isEmpty()) {
+            continue;
+        }
+
+        if (parts[0] == "endscrap") {
+            m_endScrapLine = line;
             continue;
         }
 
@@ -74,8 +96,6 @@ bool Th2Parser::parseFile(const QString& filePath)
                 bool okX = false;
                 bool okY = false;
 
-                // Основной формат Therion:
-                // point x y type [options]
                 x = parts[1].toDouble(&okX);
                 y = parts[2].toDouble(&okY);
 
@@ -83,8 +103,6 @@ bool Th2Parser::parseFile(const QString& filePath)
                     pointType = parts[3];
                     pointOptions = collectOptions(parts, 4);
                 } else {
-                    // Старый тестовый вариант:
-                    // point type x y [options]
                     pointType = parts[1];
 
                     x = parts[2].toDouble(&okX);
@@ -96,7 +114,7 @@ bool Th2Parser::parseFile(const QString& filePath)
                 }
 
                 if (okX && okY) {
-                    m_points.append(new PointItem(QPointF(x, -y), pointType, pointOptions));
+                    m_points.append(new PointItem(QPointF(x, -y), pointType, pointOptions, line));
                 }
             }
 
@@ -166,6 +184,14 @@ bool Th2Parser::parseFile(const QString& filePath)
         }
     }
 
+    if (m_scrapLine.isEmpty()) {
+        m_scrapLine = "scrap scrap1";
+    }
+
+    if (m_endScrapLine.isEmpty()) {
+        m_endScrapLine = "endscrap";
+    }
+
     return true;
 }
 
@@ -177,4 +203,19 @@ const QVector<LineItem*>& Th2Parser::lines() const
 const QVector<PointItem*>& Th2Parser::points() const
 {
     return m_points;
+}
+
+const QStringList& Th2Parser::headerLines() const
+{
+    return m_headerLines;
+}
+
+QString Th2Parser::scrapLine() const
+{
+    return m_scrapLine;
+}
+
+QString Th2Parser::endScrapLine() const
+{
+    return m_endScrapLine;
 }

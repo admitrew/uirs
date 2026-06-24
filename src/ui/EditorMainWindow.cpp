@@ -59,7 +59,7 @@ void EditorMainWindow::saveTh2FileAs()
         filePath += ".th2";
     }
 
-    Th2Writer::write(m_scene, filePath);
+    Th2Writer::write(m_scene, filePath, m_headerLines, m_scrapLine, m_endScrapLine);
 
     qDebug() << "Файл сохранён:" << filePath;
 
@@ -98,6 +98,10 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
         );
         return;
     }
+
+    m_headerLines = parser.headerLines();
+    m_scrapLine = parser.scrapLine();
+    m_endScrapLine = parser.endScrapLine();
 
     m_scene->clear();
 

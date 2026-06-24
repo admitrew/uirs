@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QStringList>
 
 class QGraphicsView;
 class MapScene;
@@ -22,4 +23,8 @@ private:
 
     MapScene* m_scene;
     QGraphicsView* m_view;
+
+    QStringList m_headerLines;
+    QString m_scrapLine;
+    QString m_endScrapLine;
 };
