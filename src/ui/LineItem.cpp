@@ -9,6 +9,8 @@ LineItem::LineItem(const QString& therionType,
       m_options(options)
 {
     setPen(StyleManager::linePen(m_type));
+    setAcceptHoverEvents(true);
+    updateToolTip();
 }
 
 LineItem::LineItem(const QVector<QPointF>& points,
@@ -25,6 +27,8 @@ LineItem::LineItem(const QVector<QPointF>& points,
     }
 
     setPen(StyleManager::linePen(m_type));
+    setAcceptHoverEvents(true);
+    updateToolTip();
     rebuildPath();
 }
 
@@ -36,6 +40,8 @@ LineItem::LineItem(const QVector<LineNode>& nodes,
       m_nodes(nodes)
 {
     setPen(StyleManager::linePen(m_type));
+    setAcceptHoverEvents(true);
+    updateToolTip();
     rebuildPath();
 }
 
@@ -78,16 +84,18 @@ void LineItem::setTherionType(const QString& therionType)
 {
     m_type = therionType;
     setPen(StyleManager::linePen(m_type));
-}
-
-QString LineItem::options() const
-{
-    return m_options;
+    updateToolTip();
 }
 
 void LineItem::setOptions(const QString& options)
 {
     m_options = options;
+    updateToolTip();
+}
+
+QString LineItem::options() const
+{
+    return m_options;
 }
 
 void LineItem::rebuildPath(const QPointF* previewPoint)
@@ -170,4 +178,15 @@ QString LineItem::toTh2() const
     result += "endline\n";
 
     return result;
+}
+
+void LineItem::updateToolTip()
+{
+    QString text = "line " + m_type;
+
+    if (!m_options.trimmed().isEmpty()) {
+        text += " " + m_options.trimmed();
+    }
+
+    setToolTip(text);
 }

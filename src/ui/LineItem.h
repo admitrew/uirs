@@ -49,6 +49,7 @@ public:
 
 private:
     void rebuildPath(const QPointF* previewPoint = nullptr);
+    void updateToolTip();
 
     QString m_type;
     QString m_options;

@@ -29,10 +29,14 @@ public:
 
 protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+
     void paint(QPainter* painter,
                const QStyleOptionGraphicsItem* option,
                QWidget* widget = nullptr) override;
+
 private:
+    void updateToolTip();
+
     QString m_type;
     QString m_options;
     QString m_rawText;

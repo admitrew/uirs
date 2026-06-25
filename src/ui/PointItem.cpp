@@ -20,6 +20,10 @@ PointItem::PointItem(const QPointF& position,
     setFlag(QGraphicsItem::ItemIsSelectable);
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges);
+    setFlag(QGraphicsItem::ItemIgnoresTransformations);
+
+    setAcceptHoverEvents(true);
+    updateToolTip();
 }
 
 QString PointItem::therionType() const
@@ -127,4 +131,23 @@ void PointItem::paint(QPainter* painter,
     } else {
         painter->drawEllipse(r);
     }
+}
+
+void PointItem::updateToolTip()
+{
+    if (!m_rawText.trimmed().isEmpty() && !m_modified) {
+        setToolTip(m_rawText.trimmed());
+        return;
+    }
+
+    QString text = QString("point %1 %2 %3")
+        .arg(pos().x(), 0, 'g', 15)
+        .arg(-pos().y(), 0, 'g', 15)
+        .arg(m_type);
+
+    if (!m_options.trimmed().isEmpty()) {
+        text += " " + m_options.trimmed();
+    }
+
+    setToolTip(text);
 }
