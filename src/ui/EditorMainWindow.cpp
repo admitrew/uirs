@@ -1,5 +1,7 @@
 #include "EditorMainWindow.h"
 #include "MapScene.h"
+#include "PointItem.h"
+#include "LineItem.h"
 
 #include "../parser/Th2Parser.h"
 #include "../parser/Th2Writer.h"
@@ -19,6 +21,14 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QSignalBlocker>
+#include <QDockWidget>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QGraphicsItem>
+#include <QList>
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -32,13 +42,18 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
     m_view->setMouseTracking(true);
 
     setCentralWidget(m_view);
-    resize(1000, 700);
+    resize(1100, 700);
     setWindowTitle("Therion Preview Editor");
 
     createMenus();
     createToolBar();
+    createPropertiesPanel();
+
+    connect(m_scene, &QGraphicsScene::selectionChanged,
+            this, &EditorMainWindow::updatePropertiesPanel);
 
     setSelectMode();
+    updatePropertiesPanel();
 }
 
 void EditorMainWindow::createMenus()
@@ -166,6 +181,11 @@ void EditorMainWindow::createToolBar()
     m_lineTypeCombo->setCurrentText("wall");
     toolBar->addWidget(m_lineTypeCombo);
 
+    toolBar->addSeparator();
+
+    m_showPropertiesAction = toolBar->addAction("Свойства");
+    m_showPropertiesAction->setToolTip("Показать панель свойств выбранного объекта");
+
     connect(m_selectToolAction, &QAction::triggered, this, &EditorMainWindow::setSelectMode);
 
     connect(m_addPointToolAction, &QAction::triggered, this, [this]() {
@@ -175,6 +195,9 @@ void EditorMainWindow::createToolBar()
     connect(m_addLineToolAction, &QAction::triggered, this, [this]() {
         setAddLineMode(m_lineTypeCombo->currentText());
     });
+
+    connect(m_showPropertiesAction, &QAction::triggered,
+            this, &EditorMainWindow::showPropertiesPanel);
 
     connect(m_pointTypeCombo, &QComboBox::currentTextChanged, this, [this](const QString& type) {
         if (m_addPointToolAction && m_addPointToolAction->isChecked()) {
@@ -189,6 +212,50 @@ void EditorMainWindow::createToolBar()
     });
 
     updateToolBarState();
+}
+
+void EditorMainWindow::createPropertiesPanel()
+{
+    m_propertiesDock = new QDockWidget("Свойства", this);
+    m_propertiesDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
+    QWidget* panel = new QWidget(m_propertiesDock);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(panel);
+
+    m_selectedObjectLabel = new QLabel("Объект не выбран", panel);
+    mainLayout->addWidget(m_selectedObjectLabel);
+
+    QFormLayout* formLayout = new QFormLayout();
+
+    m_typeEdit = new QLineEdit(panel);
+    m_optionsEdit = new QLineEdit(panel);
+
+    formLayout->addRow("Тип:", m_typeEdit);
+    formLayout->addRow("Options:", m_optionsEdit);
+
+    mainLayout->addLayout(formLayout);
+
+    m_applyPropertiesButton = new QPushButton("Применить", panel);
+    mainLayout->addWidget(m_applyPropertiesButton);
+
+    mainLayout->addStretch();
+
+    panel->setLayout(mainLayout);
+
+    m_propertiesDock->setWidget(panel);
+    addDockWidget(Qt::RightDockWidgetArea, m_propertiesDock);
+
+    connect(m_applyPropertiesButton, &QPushButton::clicked,
+            this, &EditorMainWindow::applyPropertiesToSelectedItem);
+
+    connect(m_typeEdit, &QLineEdit::returnPressed,
+            this, &EditorMainWindow::applyPropertiesToSelectedItem);
+
+    connect(m_optionsEdit, &QLineEdit::returnPressed,
+            this, &EditorMainWindow::applyPropertiesToSelectedItem);
+
+    clearPropertiesPanel();
 }
 
 void EditorMainWindow::setSelectMode()
@@ -256,6 +323,131 @@ void EditorMainWindow::updateToolBarState()
 
     m_pointTypeCombo->setEnabled(pointMode);
     m_lineTypeCombo->setEnabled(lineMode);
+}
+
+void EditorMainWindow::showPropertiesPanel()
+{
+    if (!m_propertiesDock) {
+        return;
+    }
+
+    m_propertiesDock->show();
+    m_propertiesDock->raise();
+    m_propertiesDock->activateWindow();
+
+    updatePropertiesPanel();
+}
+
+void EditorMainWindow::clearPropertiesPanel()
+{
+    if (!m_selectedObjectLabel || !m_typeEdit || !m_optionsEdit || !m_applyPropertiesButton) {
+        return;
+    }
+
+    m_selectedObjectLabel->setText("Объект не выбран");
+
+    m_typeEdit->clear();
+    m_optionsEdit->clear();
+
+    m_typeEdit->setEnabled(false);
+    m_optionsEdit->setEnabled(false);
+    m_applyPropertiesButton->setEnabled(false);
+}
+
+void EditorMainWindow::updatePropertiesPanel()
+{
+    if (!m_selectedObjectLabel || !m_typeEdit || !m_optionsEdit || !m_applyPropertiesButton) {
+        return;
+    }
+
+    QList<QGraphicsItem*> selected = m_scene->selectedItems();
+
+    if (selected.size() != 1) {
+        clearPropertiesPanel();
+
+        if (selected.size() > 1) {
+            m_selectedObjectLabel->setText("Выбрано несколько объектов");
+        }
+
+        return;
+    }
+
+    QGraphicsItem* item = selected.first();
+
+    QSignalBlocker typeBlocker(m_typeEdit);
+    QSignalBlocker optionsBlocker(m_optionsEdit);
+
+    if (auto* point = dynamic_cast<PointItem*>(item)) {
+        m_selectedObjectLabel->setText("Выбран объект: point");
+
+        m_typeEdit->setText(point->therionType());
+        m_optionsEdit->setText(point->options());
+
+        m_typeEdit->setEnabled(true);
+        m_optionsEdit->setEnabled(true);
+        m_applyPropertiesButton->setEnabled(true);
+
+        return;
+    }
+
+    if (auto* line = dynamic_cast<LineItem*>(item)) {
+        m_selectedObjectLabel->setText("Выбран объект: line");
+
+        m_typeEdit->setText(line->therionType());
+        m_optionsEdit->setText(line->options());
+
+        m_typeEdit->setEnabled(true);
+        m_optionsEdit->setEnabled(true);
+        m_applyPropertiesButton->setEnabled(true);
+
+        return;
+    }
+
+    clearPropertiesPanel();
+    m_selectedObjectLabel->setText("Неизвестный объект");
+}
+
+void EditorMainWindow::applyPropertiesToSelectedItem()
+{
+    QList<QGraphicsItem*> selected = m_scene->selectedItems();
+
+    if (selected.size() != 1) {
+        return;
+    }
+
+    QGraphicsItem* item = selected.first();
+
+    QString newType = m_typeEdit->text().trimmed();
+    QString newOptions = m_optionsEdit->text().trimmed();
+
+    if (newType.isEmpty()) {
+        QMessageBox::warning(
+            this,
+            "Ошибка",
+            "Тип объекта не может быть пустым."
+        );
+        return;
+    }
+
+    if (auto* point = dynamic_cast<PointItem*>(item)) {
+        point->setTherionType(newType);
+        point->setOptions(newOptions);
+        point->update();
+
+        statusBar()->showMessage("Свойства point обновлены: " + newType);
+        updatePropertiesPanel();
+        return;
+    }
+
+    if (auto* line = dynamic_cast<LineItem*>(item)) {
+        line->setTherionType(newType);
+        line->setOptions(newOptions);
+        line->update();
+
+        statusBar()->showMessage("Свойства line обновлены: " + newType);
+        updatePropertiesPanel();
+        return;
+    }
 }
 
 void EditorMainWindow::openTh2File()
@@ -349,6 +541,7 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
     setWindowTitle("Therion Preview Editor — " + filePath);
 
     fitSceneToView();
+    updatePropertiesPanel();
 }
 
 void EditorMainWindow::fitSceneToView()

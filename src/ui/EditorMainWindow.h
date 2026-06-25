@@ -7,6 +7,10 @@
 class QGraphicsView;
 class QAction;
 class QComboBox;
+class QDockWidget;
+class QLabel;
+class QLineEdit;
+class QPushButton;
 class MapScene;
 
 class EditorMainWindow : public QMainWindow
@@ -21,6 +25,7 @@ private:
     void createFileMenu();
     void createToolsMenu();
     void createToolBar();
+    void createPropertiesPanel();
 
     void openTh2File();
     void saveTh2FileAs();
@@ -33,15 +38,27 @@ private:
 
     void updateToolBarState();
 
+    void showPropertiesPanel();
+    void updatePropertiesPanel();
+    void clearPropertiesPanel();
+    void applyPropertiesToSelectedItem();
+
     MapScene* m_scene;
     QGraphicsView* m_view;
 
     QAction* m_selectToolAction = nullptr;
     QAction* m_addPointToolAction = nullptr;
     QAction* m_addLineToolAction = nullptr;
+    QAction* m_showPropertiesAction = nullptr;
 
     QComboBox* m_pointTypeCombo = nullptr;
     QComboBox* m_lineTypeCombo = nullptr;
+
+    QDockWidget* m_propertiesDock = nullptr;
+    QLabel* m_selectedObjectLabel = nullptr;
+    QLineEdit* m_typeEdit = nullptr;
+    QLineEdit* m_optionsEdit = nullptr;
+    QPushButton* m_applyPropertiesButton = nullptr;
 
     QStringList m_headerLines;
     QString m_scrapLine;
