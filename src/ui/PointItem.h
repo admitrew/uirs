@@ -4,6 +4,7 @@
 #include <QPointF>
 #include <QString>
 #include <QVariant>
+#include <QPainter>
 
 #include "../core/Th2Serializable.h"
 
@@ -28,7 +29,9 @@ public:
 
 protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
-
+    void paint(QPainter* painter,
+               const QStyleOptionGraphicsItem* option,
+               QWidget* widget = nullptr) override;
 private:
     QString m_type;
     QString m_options;

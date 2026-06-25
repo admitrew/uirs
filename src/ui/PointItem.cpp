@@ -82,3 +82,49 @@ QString PointItem::toTh2() const
 
     return result;
 }
+
+void PointItem::paint(QPainter* painter,
+                      const QStyleOptionGraphicsItem* option,
+                      QWidget* widget)
+{
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
+
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->setPen(QPen(Qt::black, 1));
+    painter->setBrush(StyleManager::pointBrush(m_type));
+
+    QRectF r = rect();
+
+    if (m_type == "station") {
+        painter->drawEllipse(r);
+    } else if (m_type == "label") {
+        painter->drawRect(r);
+    } else if (m_type == "entrance") {
+        painter->drawRect(r.adjusted(-1, -1, 1, 1));
+    } else if (m_type == "gradient") {
+        QPolygonF triangle;
+        triangle << QPointF(0, r.top())
+                 << QPointF(r.right(), r.bottom())
+                 << QPointF(r.left(), r.bottom());
+
+        painter->drawPolygon(triangle);
+    } else if (m_type == "water-flow") {
+        QPolygonF diamond;
+        diamond << QPointF(0, r.top())
+                << QPointF(r.right(), 0)
+                << QPointF(0, r.bottom())
+                << QPointF(r.left(), 0);
+
+        painter->drawPolygon(diamond);
+    } else if (m_type == "stalagmite") {
+        QPolygonF triangle;
+        triangle << QPointF(0, r.top())
+                 << QPointF(r.right(), r.bottom())
+                 << QPointF(r.left(), r.bottom());
+
+        painter->drawPolygon(triangle);
+    } else {
+        painter->drawEllipse(r);
+    }
+}
