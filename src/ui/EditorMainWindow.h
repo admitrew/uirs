@@ -5,6 +5,7 @@
 #include <QStringList>
 
 class QGraphicsView;
+class QAction;
 class MapScene;
 
 class EditorMainWindow : public QMainWindow
@@ -16,10 +17,16 @@ public:
 
 private:
     void createMenus();
+    void createFileMenu();
+    void createToolsMenu();
+
     void openTh2File();
     void saveTh2FileAs();
     void loadTh2File(const QString& filePath);
     void fitSceneToView();
+
+    void setSelectMode();
+    void setAddPointMode(const QString& pointType);
 
     MapScene* m_scene;
     QGraphicsView* m_view;

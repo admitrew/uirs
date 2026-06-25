@@ -9,10 +9,12 @@
 #include <QMessageBox>
 #include <QMenuBar>
 #include <QAction>
+#include <QActionGroup>
 #include <QKeySequence>
 #include <QTimer>
 #include <QPainter>
 #include <QDebug>
+#include <QStatusBar>
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -29,9 +31,17 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
     setWindowTitle("Therion Preview Editor");
 
     createMenus();
+
+    statusBar()->showMessage("Режим: выбор");
 }
 
 void EditorMainWindow::createMenus()
+{
+    createFileMenu();
+    createToolsMenu();
+}
+
+void EditorMainWindow::createFileMenu()
 {
     QMenu* fileMenu = menuBar()->addMenu("Файл");
 
@@ -43,6 +53,52 @@ void EditorMainWindow::createMenus()
 
     connect(openAction, &QAction::triggered, this, &EditorMainWindow::openTh2File);
     connect(saveAsAction, &QAction::triggered, this, &EditorMainWindow::saveTh2FileAs);
+}
+
+void EditorMainWindow::createToolsMenu()
+{
+    QMenu* toolsMenu = menuBar()->addMenu("Инструменты");
+
+    QActionGroup* toolGroup = new QActionGroup(this);
+    toolGroup->setExclusive(true);
+
+    QAction* selectAction = toolsMenu->addAction("Выбор / редактирование");
+    selectAction->setCheckable(true);
+    selectAction->setChecked(true);
+    toolGroup->addAction(selectAction);
+
+    connect(selectAction, &QAction::triggered, this, &EditorMainWindow::setSelectMode);
+
+    toolsMenu->addSeparator();
+
+    auto addPointAction = [this, toolsMenu, toolGroup](const QString& title, const QString& type) {
+        QAction* action = toolsMenu->addAction(title);
+        action->setCheckable(true);
+        toolGroup->addAction(action);
+
+        connect(action, &QAction::triggered, this, [this, type]() {
+            setAddPointMode(type);
+        });
+    };
+
+    addPointAction("Добавить point station", "station");
+    addPointAction("Добавить point label", "label");
+    addPointAction("Добавить point gradient", "gradient");
+    addPointAction("Добавить point water-flow", "water-flow");
+    addPointAction("Добавить point entrance", "entrance");
+    addPointAction("Добавить point stalagmite", "stalagmite");
+}
+
+void EditorMainWindow::setSelectMode()
+{
+    m_scene->setSelectMode();
+    statusBar()->showMessage("Режим: выбор");
+}
+
+void EditorMainWindow::setAddPointMode(const QString& pointType)
+{
+    m_scene->setAddPointMode(pointType);
+    statusBar()->showMessage("Режим: добавление point " + pointType);
 }
 
 void EditorMainWindow::openTh2File()
