@@ -2,6 +2,7 @@
 #include "StyleManager.h"
 
 #include <QPen>
+#include <QPolygonF>
 
 PointItem::PointItem(const QPointF& position,
                      const QString& therionType,
@@ -11,7 +12,7 @@ PointItem::PointItem(const QPointF& position,
       m_options(options),
       m_rawText(rawText)
 {
-    setRect(-3, -3, 6, 6);
+    setRect(-5, -5, 10, 10);
     setPos(position);
 
     setBrush(StyleManager::pointBrush(m_type));
@@ -20,7 +21,6 @@ PointItem::PointItem(const QPointF& position,
     setFlag(QGraphicsItem::ItemIsSelectable);
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges);
-    setFlag(QGraphicsItem::ItemIgnoresTransformations);
 
     setAcceptHoverEvents(true);
     updateToolTip();
@@ -35,7 +35,10 @@ void PointItem::setTherionType(const QString& therionType)
 {
     m_type = therionType;
     m_modified = true;
+
     setBrush(StyleManager::pointBrush(m_type));
+    updateToolTip();
+    update();
 }
 
 QString PointItem::options() const
@@ -47,6 +50,8 @@ void PointItem::setOptions(const QString& options)
 {
     m_options = options;
     m_modified = true;
+
+    updateToolTip();
 }
 
 QString PointItem::rawText() const
@@ -58,33 +63,18 @@ void PointItem::setRawText(const QString& rawText)
 {
     m_rawText = rawText;
     m_modified = false;
+
+    updateToolTip();
 }
 
 QVariant PointItem::itemChange(GraphicsItemChange change, const QVariant& value)
 {
     if (change == QGraphicsItem::ItemPositionHasChanged) {
         m_modified = true;
+        updateToolTip();
     }
 
     return QGraphicsEllipseItem::itemChange(change, value);
-}
-
-QString PointItem::toTh2() const
-{
-    if (!m_modified && !m_rawText.trimmed().isEmpty()) {
-        return m_rawText.trimmed();
-    }
-
-    QString result = QString("point %1 %2 %3")
-        .arg(pos().x(), 0, 'g', 15)
-        .arg(-pos().y(), 0, 'g', 15)
-        .arg(m_type);
-
-    if (!m_options.trimmed().isEmpty()) {
-        result += " " + m_options.trimmed();
-    }
-
-    return result;
 }
 
 void PointItem::paint(QPainter* painter,
@@ -95,17 +85,18 @@ void PointItem::paint(QPainter* painter,
     Q_UNUSED(widget)
 
     painter->setRenderHint(QPainter::Antialiasing);
+
+    QRectF r = rect().adjusted(1, 1, -1, -1);
+
     painter->setPen(QPen(Qt::black, 1));
     painter->setBrush(StyleManager::pointBrush(m_type));
-
-    QRectF r = rect();
 
     if (m_type == "station") {
         painter->drawEllipse(r);
     } else if (m_type == "label") {
         painter->drawRect(r);
     } else if (m_type == "entrance") {
-        painter->drawRect(r.adjusted(-1, -1, 1, 1));
+        painter->drawRect(r);
     } else if (m_type == "gradient") {
         QPolygonF triangle;
         triangle << QPointF(0, r.top())
@@ -131,11 +122,14 @@ void PointItem::paint(QPainter* painter,
     } else {
         painter->drawEllipse(r);
     }
+
     if (isSelected()) {
-        painter->setPen(QPen(Qt::black, 2, Qt::DashLine));
+        painter->setPen(QPen(Qt::blue, 1.5, Qt::DashLine));
         painter->setBrush(Qt::NoBrush);
-        painter->drawRect(rect().adjusted(-2, -2, 2, 2));
-    }   
+
+        QRectF selectionRect = rect().adjusted(1, 1, -1, -1);
+        painter->drawRect(selectionRect);
+    }
 }
 
 void PointItem::updateToolTip()
@@ -155,4 +149,22 @@ void PointItem::updateToolTip()
     }
 
     setToolTip(text);
+}
+
+QString PointItem::toTh2() const
+{
+    if (!m_modified && !m_rawText.trimmed().isEmpty()) {
+        return m_rawText.trimmed();
+    }
+
+    QString result = QString("point %1 %2 %3")
+        .arg(pos().x(), 0, 'g', 15)
+        .arg(-pos().y(), 0, 'g', 15)
+        .arg(m_type);
+
+    if (!m_options.trimmed().isEmpty()) {
+        result += " " + m_options.trimmed();
+    }
+
+    return result;
 }

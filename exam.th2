@@ -228,7 +228,7 @@ point 1166.5 189.5 water-flow -orientation 344.5
 point 1127.5 372.5 water-flow -orientation 347.9
 point 1196.5 62.0 water-flow -orientation 347.9
 point 542.5 699.5 label -orientation 17.9 -scale l -text "Short Dry Way"
-point 609.5 770.5 label -scale s -text "C1m"
+point 1417.21910072584 1095.97330852033 label -scale s -text "C1m"
 point 1054.0 450.5 label -scale s -text "C1m"
 point 984.5 471.0 label -scale s -text "C1m"
 point 902.0 527.5 label -scale s -text "<center>step<br>(C0.5m)"
