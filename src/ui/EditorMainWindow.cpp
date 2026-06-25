@@ -29,6 +29,7 @@
 #include <QPushButton>
 #include <QGraphicsItem>
 #include <QList>
+#include <QFileInfo>
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -43,7 +44,6 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
 
     setCentralWidget(m_view);
     resize(1100, 700);
-    setWindowTitle("Therion Preview Editor");
 
     createMenus();
     createToolBar();
@@ -54,6 +54,7 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
 
     setSelectMode();
     updatePropertiesPanel();
+    updateWindowTitle();
 }
 
 void EditorMainWindow::createMenus()
@@ -69,10 +70,14 @@ void EditorMainWindow::createFileMenu()
     QAction* openAction = fileMenu->addAction("Открыть .th2");
     openAction->setShortcut(QKeySequence::Open);
 
+    QAction* saveAction = fileMenu->addAction("Сохранить");
+    saveAction->setShortcut(QKeySequence::Save);
+
     QAction* saveAsAction = fileMenu->addAction("Сохранить как .th2");
     saveAsAction->setShortcut(QKeySequence::SaveAs);
 
     connect(openAction, &QAction::triggered, this, &EditorMainWindow::openTh2File);
+    connect(saveAction, &QAction::triggered, this, &EditorMainWindow::saveCurrentFile);
     connect(saveAsAction, &QAction::triggered, this, &EditorMainWindow::saveTh2FileAs);
 }
 
@@ -466,12 +471,22 @@ void EditorMainWindow::openTh2File()
     loadTh2File(filePath);
 }
 
+void EditorMainWindow::saveCurrentFile()
+{
+    if (m_currentFilePath.isEmpty()) {
+        saveTh2FileAs();
+        return;
+    }
+
+    writeTh2File(m_currentFilePath);
+}
+
 void EditorMainWindow::saveTh2FileAs()
 {
     QString filePath = QFileDialog::getSaveFileName(
         this,
         "Сохранить файл Therion",
-        QString(),
+        m_currentFilePath,
         "Therion scraps (*.th2);;Все файлы (*.*)"
     );
 
@@ -483,6 +498,14 @@ void EditorMainWindow::saveTh2FileAs()
         filePath += ".th2";
     }
 
+    m_currentFilePath = filePath;
+    updateWindowTitle();
+
+    writeTh2File(filePath);
+}
+
+void EditorMainWindow::writeTh2File(const QString& filePath)
+{
     qDebug() << "Saving area blocks:" << m_areaBlocks.size();
 
     Th2Writer::write(
@@ -496,11 +519,7 @@ void EditorMainWindow::saveTh2FileAs()
 
     qDebug() << "Файл сохранён:" << filePath;
 
-    QMessageBox::information(
-        this,
-        "Сохранение завершено",
-        "Файл сохранён:\n" + filePath
-    );
+    statusBar()->showMessage("Файл сохранён: " + filePath, 5000);
 }
 
 void EditorMainWindow::loadTh2File(const QString& filePath)
@@ -520,6 +539,7 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
     m_scrapLine = parser.scrapLine();
     m_endScrapLine = parser.endScrapLine();
     m_areaBlocks = parser.areaBlocks();
+    m_currentFilePath = filePath;
 
     qDebug() << "Area blocks:" << m_areaBlocks.size();
 
@@ -538,7 +558,7 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
     qDebug() << "Загружено линий:" << parser.lines().size();
     qDebug() << "Загружено точек:" << parser.points().size();
 
-    setWindowTitle("Therion Preview Editor — " + filePath);
+    updateWindowTitle();
 
     fitSceneToView();
     updatePropertiesPanel();
@@ -557,4 +577,15 @@ void EditorMainWindow::fitSceneToView()
     QTimer::singleShot(0, this, [this]() {
         m_view->fitInView(m_scene->sceneRect(), Qt::KeepAspectRatio);
     });
+}
+
+void EditorMainWindow::updateWindowTitle()
+{
+    if (m_currentFilePath.isEmpty()) {
+        setWindowTitle("Therion Preview Editor — новый файл");
+        return;
+    }
+
+    QFileInfo info(m_currentFilePath);
+    setWindowTitle("Therion Preview Editor — " + info.fileName());
 }

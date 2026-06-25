@@ -28,9 +28,13 @@ private:
     void createPropertiesPanel();
 
     void openTh2File();
+    void saveCurrentFile();
     void saveTh2FileAs();
+    void writeTh2File(const QString& filePath);
+
     void loadTh2File(const QString& filePath);
     void fitSceneToView();
+    void updateWindowTitle();
 
     void setSelectMode();
     void setAddPointMode(const QString& pointType);
@@ -64,4 +68,6 @@ private:
     QString m_scrapLine;
     QString m_endScrapLine;
     QStringList m_areaBlocks;
+
+    QString m_currentFilePath;
 };
