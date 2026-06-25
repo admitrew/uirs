@@ -12,6 +12,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class MapScene;
+class QCloseEvent;
 
 class EditorMainWindow : public QMainWindow
 {
@@ -19,6 +20,9 @@ class EditorMainWindow : public QMainWindow
 
 public:
     explicit EditorMainWindow(QWidget* parent = nullptr);
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
 
 private:
     void createMenus();
@@ -28,9 +32,11 @@ private:
     void createPropertiesPanel();
 
     void openTh2File();
-    void saveCurrentFile();
-    void saveTh2FileAs();
-    void writeTh2File(const QString& filePath);
+    bool saveCurrentFile();
+    bool saveTh2FileAs();
+    bool writeTh2File(const QString& filePath);
+
+    bool maybeSaveCurrentFile();
 
     void loadTh2File(const QString& filePath);
     void fitSceneToView();
@@ -46,6 +52,9 @@ private:
     void updatePropertiesPanel();
     void clearPropertiesPanel();
     void applyPropertiesToSelectedItem();
+
+    void markModified();
+    void setModified(bool modified);
 
     MapScene* m_scene;
     QGraphicsView* m_view;
@@ -70,4 +79,7 @@ private:
     QStringList m_areaBlocks;
 
     QString m_currentFilePath;
+
+    bool m_isModified = false;
+    bool m_isLoadingFile = false;
 };

@@ -6,22 +6,12 @@ encoding  utf-8
 
 
 scrap ShortDryWaySP1 -projection plan -scale [0 0 393.7 393.7 0.0 0.0 10 10 m]
-
-point 521.25 757.5 water-flow -orientation 294.6
-
-point 566.75 740.5 flowstone -orientation 287.4
-
 line border
   569.75 727.0
   571.75 728.25 573.5 730.0 575.5 737.0
   577.5 744.0 577.5 746.75 577.25 749.25
   smooth off
 endline
-
-area pebbles
-  l49-556-800
-  l45-555-741
-endarea
 
 line border -id l49-556-800
   561.75 755.0
@@ -38,26 +28,6 @@ line border -id l45-555-741 -reverse on
   553.0 736.25 554.0 733.75 554.75 731.5
   smooth off
 endline
-
-point 1130.5 303.0 water-flow -orientation 344.8
-
-point 1166.5 189.5 water-flow -orientation 344.5
-
-point 1127.5 372.5 water-flow -orientation 347.9
-
-point 1196.5 62.0 water-flow -orientation 347.9
-
-point 542.5 699.5 label -orientation 17.9 -scale l -text "Short Dry Way"
-
-point 609.5 770.5 label -scale s -text "C1m"
-
-point 1054.0 450.5 label -scale s -text "C1m"
-
-point 984.5 471.0 label -scale s -text "C1m"
-
-point 902.0 527.5 label -scale s -text "<center>step<br>(C0.5m)"
-
-point 1102.0 231.5 gradient -orientation 70.5
 
 line wall
   1170.0 79.5
@@ -147,18 +117,6 @@ endline
 
 line wall
 endline
-
-point 41.41937007874003 1019.2951181102363 station -name 3.13
-
-point 203.6593700787398 933.0351181102363 station -name 3.12
-
-point 326.17937007874 920.1951181102364 station -name 3.11
-
-point 427.35937007873986 784.8451181102363 station -name 3.10
-
-point 471.01937007873994 787.9151181102362 station -name 3.9
-
-point 703.6593700787399 675.9851181102364 station -name 3.8
 
 line wall
   1215.0 52.0
@@ -263,20 +221,34 @@ line wall
   smooth off
 endline
 
+point 521.25 757.5 water-flow -orientation 294.6
+point 566.75 740.5 flowstone -orientation 287.4
+point 1130.5 303.0 water-flow -orientation 344.8
+point 1166.5 189.5 water-flow -orientation 344.5
+point 1127.5 372.5 water-flow -orientation 347.9
+point 1196.5 62.0 water-flow -orientation 347.9
+point 542.5 699.5 label -orientation 17.9 -scale l -text "Short Dry Way"
+point 609.5 770.5 label -scale s -text "C1m"
+point 1054.0 450.5 label -scale s -text "C1m"
+point 984.5 471.0 label -scale s -text "C1m"
+point 902.0 527.5 label -scale s -text "<center>step<br>(C0.5m)"
+point 1102.0 231.5 gradient -orientation 70.5
+point 41.41937007874003 1019.2951181102363 station -name 3.13
+point 203.6593700787398 933.0351181102363 station -name 3.12
+point 326.17937007874 920.1951181102364 station -name 3.11
+point 427.35937007873986 784.8451181102363 station -name 3.10
+point 471.01937007873994 787.9151181102362 station -name 3.9
+point 703.6593700787399 675.9851181102364 station -name 3.8
 point 791.8093700787399 618.5451181102363 station -name 3.7
-
 point 868.6593700787399 442.91511811023634 station -name 3.6
-
 point 1148.89937007874 76.49511811023638 station -name 3.4
-
 point 1187.5993700787399 93.34511811023629 station -name 3.3
-
 point 1046.1793700787398 413.7051181102363 station -name 3.5
-
 point 1160.70937007874 258.03511811023634 station -name 3.2
-
 point 1069.72937007874 230.7051181102363 station -name 3.1
+area pebbles
+  l49-556-800
+  l45-555-741
+endarea
 
 endscrap
-
-

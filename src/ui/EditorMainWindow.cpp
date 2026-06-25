@@ -30,6 +30,7 @@
 #include <QGraphicsItem>
 #include <QList>
 #include <QFileInfo>
+#include <QCloseEvent>
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -52,9 +53,25 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
     connect(m_scene, &QGraphicsScene::selectionChanged,
             this, &EditorMainWindow::updatePropertiesPanel);
 
+    connect(m_scene, &QGraphicsScene::changed,
+            this, [this]() {
+                if (!m_isLoadingFile) {
+                    markModified();
+                }
+            });
+
     setSelectMode();
     updatePropertiesPanel();
     updateWindowTitle();
+}
+
+void EditorMainWindow::closeEvent(QCloseEvent* event)
+{
+    if (maybeSaveCurrentFile()) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
 }
 
 void EditorMainWindow::createMenus()
@@ -439,6 +456,7 @@ void EditorMainWindow::applyPropertiesToSelectedItem()
         point->setOptions(newOptions);
         point->update();
 
+        markModified();
         statusBar()->showMessage("Свойства point обновлены: " + newType);
         updatePropertiesPanel();
         return;
@@ -449,14 +467,58 @@ void EditorMainWindow::applyPropertiesToSelectedItem()
         line->setOptions(newOptions);
         line->update();
 
+        markModified();
         statusBar()->showMessage("Свойства line обновлены: " + newType);
         updatePropertiesPanel();
         return;
     }
 }
 
+void EditorMainWindow::markModified()
+{
+    setModified(true);
+}
+
+void EditorMainWindow::setModified(bool modified)
+{
+    if (m_isModified == modified) {
+        return;
+    }
+
+    m_isModified = modified;
+    updateWindowTitle();
+}
+
+bool EditorMainWindow::maybeSaveCurrentFile()
+{
+    if (!m_isModified) {
+        return true;
+    }
+
+    QMessageBox::StandardButton result = QMessageBox::warning(
+        this,
+        "Несохранённые изменения",
+        "В файле есть несохранённые изменения.\nСохранить их?",
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel
+    );
+
+    if (result == QMessageBox::Save) {
+        return saveCurrentFile();
+    }
+
+    if (result == QMessageBox::Discard) {
+        return true;
+    }
+
+    return false;
+}
+
 void EditorMainWindow::openTh2File()
 {
+    if (!maybeSaveCurrentFile()) {
+        return;
+    }
+
     QString filePath = QFileDialog::getOpenFileName(
         this,
         "Открыть файл Therion",
@@ -471,17 +533,16 @@ void EditorMainWindow::openTh2File()
     loadTh2File(filePath);
 }
 
-void EditorMainWindow::saveCurrentFile()
+bool EditorMainWindow::saveCurrentFile()
 {
     if (m_currentFilePath.isEmpty()) {
-        saveTh2FileAs();
-        return;
+        return saveTh2FileAs();
     }
 
-    writeTh2File(m_currentFilePath);
+    return writeTh2File(m_currentFilePath);
 }
 
-void EditorMainWindow::saveTh2FileAs()
+bool EditorMainWindow::saveTh2FileAs()
 {
     QString filePath = QFileDialog::getSaveFileName(
         this,
@@ -491,7 +552,7 @@ void EditorMainWindow::saveTh2FileAs()
     );
 
     if (filePath.isEmpty()) {
-        return;
+        return false;
     }
 
     if (!filePath.endsWith(".th2", Qt::CaseInsensitive)) {
@@ -501,10 +562,10 @@ void EditorMainWindow::saveTh2FileAs()
     m_currentFilePath = filePath;
     updateWindowTitle();
 
-    writeTh2File(filePath);
+    return writeTh2File(filePath);
 }
 
-void EditorMainWindow::writeTh2File(const QString& filePath)
+bool EditorMainWindow::writeTh2File(const QString& filePath)
 {
     qDebug() << "Saving area blocks:" << m_areaBlocks.size();
 
@@ -519,7 +580,10 @@ void EditorMainWindow::writeTh2File(const QString& filePath)
 
     qDebug() << "Файл сохранён:" << filePath;
 
+    setModified(false);
     statusBar()->showMessage("Файл сохранён: " + filePath, 5000);
+
+    return true;
 }
 
 void EditorMainWindow::loadTh2File(const QString& filePath)
@@ -534,6 +598,8 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
         );
         return;
     }
+
+    m_isLoadingFile = true;
 
     m_headerLines = parser.headerLines();
     m_scrapLine = parser.scrapLine();
@@ -553,6 +619,9 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
     for (PointItem* point : parser.points()) {
         m_scene->addItem(point);
     }
+
+    m_isLoadingFile = false;
+    setModified(false);
 
     qDebug() << "Открыт файл:" << filePath;
     qDebug() << "Загружено линий:" << parser.lines().size();
@@ -581,11 +650,18 @@ void EditorMainWindow::fitSceneToView()
 
 void EditorMainWindow::updateWindowTitle()
 {
+    QString title = "Therion Preview Editor — ";
+
     if (m_currentFilePath.isEmpty()) {
-        setWindowTitle("Therion Preview Editor — новый файл");
-        return;
+        title += "новый файл";
+    } else {
+        QFileInfo info(m_currentFilePath);
+        title += info.fileName();
     }
 
-    QFileInfo info(m_currentFilePath);
-    setWindowTitle("Therion Preview Editor — " + info.fileName());
+    if (m_isModified) {
+        title += " *";
+    }
+
+    setWindowTitle(title);
 }
