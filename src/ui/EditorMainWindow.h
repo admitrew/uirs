@@ -6,6 +6,7 @@
 
 class QGraphicsView;
 class QAction;
+class QComboBox;
 class MapScene;
 
 class EditorMainWindow : public QMainWindow
@@ -19,6 +20,7 @@ private:
     void createMenus();
     void createFileMenu();
     void createToolsMenu();
+    void createToolBar();
 
     void openTh2File();
     void saveTh2FileAs();
@@ -29,8 +31,17 @@ private:
     void setAddPointMode(const QString& pointType);
     void setAddLineMode(const QString& lineType);
 
+    void updateToolBarState();
+
     MapScene* m_scene;
     QGraphicsView* m_view;
+
+    QAction* m_selectToolAction = nullptr;
+    QAction* m_addPointToolAction = nullptr;
+    QAction* m_addLineToolAction = nullptr;
+
+    QComboBox* m_pointTypeCombo = nullptr;
+    QComboBox* m_lineTypeCombo = nullptr;
 
     QStringList m_headerLines;
     QString m_scrapLine;

@@ -15,6 +15,10 @@
 #include <QPainter>
 #include <QDebug>
 #include <QStatusBar>
+#include <QToolBar>
+#include <QComboBox>
+#include <QLabel>
+#include <QSignalBlocker>
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -32,8 +36,9 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
     setWindowTitle("Therion Preview Editor");
 
     createMenus();
+    createToolBar();
 
-    statusBar()->showMessage("Режим: выбор");
+    setSelectMode();
 }
 
 void EditorMainWindow::createMenus()
@@ -112,22 +117,145 @@ void EditorMainWindow::createToolsMenu()
     addLineAction("gradient", "gradient");
 }
 
+void EditorMainWindow::createToolBar()
+{
+    QToolBar* toolBar = addToolBar("Инструменты");
+    toolBar->setMovable(false);
+
+    QActionGroup* modeGroup = new QActionGroup(this);
+    modeGroup->setExclusive(true);
+
+    m_selectToolAction = toolBar->addAction("Выбор");
+    m_selectToolAction->setCheckable(true);
+    modeGroup->addAction(m_selectToolAction);
+
+    m_addPointToolAction = toolBar->addAction("Точка");
+    m_addPointToolAction->setCheckable(true);
+    modeGroup->addAction(m_addPointToolAction);
+
+    m_addLineToolAction = toolBar->addAction("Линия");
+    m_addLineToolAction->setCheckable(true);
+    modeGroup->addAction(m_addLineToolAction);
+
+    toolBar->addSeparator();
+
+    toolBar->addWidget(new QLabel("Point:", this));
+
+    m_pointTypeCombo = new QComboBox(this);
+    m_pointTypeCombo->addItem("station");
+    m_pointTypeCombo->addItem("label");
+    m_pointTypeCombo->addItem("gradient");
+    m_pointTypeCombo->addItem("water-flow");
+    m_pointTypeCombo->addItem("entrance");
+    m_pointTypeCombo->addItem("stalagmite");
+    m_pointTypeCombo->setCurrentText("station");
+    toolBar->addWidget(m_pointTypeCombo);
+
+    toolBar->addSeparator();
+
+    toolBar->addWidget(new QLabel("Line:", this));
+
+    m_lineTypeCombo = new QComboBox(this);
+    m_lineTypeCombo->addItem("wall");
+    m_lineTypeCombo->addItem("border");
+    m_lineTypeCombo->addItem("pit");
+    m_lineTypeCombo->addItem("floor-step");
+    m_lineTypeCombo->addItem("rock-border");
+    m_lineTypeCombo->addItem("water-flow");
+    m_lineTypeCombo->addItem("gradient");
+    m_lineTypeCombo->setCurrentText("wall");
+    toolBar->addWidget(m_lineTypeCombo);
+
+    connect(m_selectToolAction, &QAction::triggered, this, &EditorMainWindow::setSelectMode);
+
+    connect(m_addPointToolAction, &QAction::triggered, this, [this]() {
+        setAddPointMode(m_pointTypeCombo->currentText());
+    });
+
+    connect(m_addLineToolAction, &QAction::triggered, this, [this]() {
+        setAddLineMode(m_lineTypeCombo->currentText());
+    });
+
+    connect(m_pointTypeCombo, &QComboBox::currentTextChanged, this, [this](const QString& type) {
+        if (m_addPointToolAction && m_addPointToolAction->isChecked()) {
+            setAddPointMode(type);
+        }
+    });
+
+    connect(m_lineTypeCombo, &QComboBox::currentTextChanged, this, [this](const QString& type) {
+        if (m_addLineToolAction && m_addLineToolAction->isChecked()) {
+            setAddLineMode(type);
+        }
+    });
+
+    updateToolBarState();
+}
+
 void EditorMainWindow::setSelectMode()
 {
     m_scene->setSelectMode();
+
+    if (m_selectToolAction) {
+        m_selectToolAction->setChecked(true);
+    }
+
+    updateToolBarState();
     statusBar()->showMessage("Режим: выбор");
 }
 
 void EditorMainWindow::setAddPointMode(const QString& pointType)
 {
     m_scene->setAddPointMode(pointType);
+
+    if (m_pointTypeCombo) {
+        QSignalBlocker blocker(m_pointTypeCombo);
+
+        int index = m_pointTypeCombo->findText(pointType);
+        if (index >= 0) {
+            m_pointTypeCombo->setCurrentIndex(index);
+        }
+    }
+
+    if (m_addPointToolAction) {
+        m_addPointToolAction->setChecked(true);
+    }
+
+    updateToolBarState();
     statusBar()->showMessage("Режим: добавление point " + pointType);
 }
 
 void EditorMainWindow::setAddLineMode(const QString& lineType)
 {
     m_scene->setAddLineMode(lineType);
+
+    if (m_lineTypeCombo) {
+        QSignalBlocker blocker(m_lineTypeCombo);
+
+        int index = m_lineTypeCombo->findText(lineType);
+        if (index >= 0) {
+            m_lineTypeCombo->setCurrentIndex(index);
+        }
+    }
+
+    if (m_addLineToolAction) {
+        m_addLineToolAction->setChecked(true);
+    }
+
+    updateToolBarState();
     statusBar()->showMessage("Режим: добавление line " + lineType + " | ЛКМ — точка, ПКМ/Enter — завершить, Esc — отменить");
+}
+
+void EditorMainWindow::updateToolBarState()
+{
+    if (!m_pointTypeCombo || !m_lineTypeCombo) {
+        return;
+    }
+
+    const bool pointMode = m_addPointToolAction && m_addPointToolAction->isChecked();
+    const bool lineMode = m_addLineToolAction && m_addLineToolAction->isChecked();
+
+    m_pointTypeCombo->setEnabled(pointMode);
+    m_lineTypeCombo->setEnabled(lineMode);
 }
 
 void EditorMainWindow::openTh2File()
@@ -203,6 +331,7 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
 
     qDebug() << "Area blocks:" << m_areaBlocks.size();
 
+    m_scene->cancelCurrentLine();
     m_scene->clear();
 
     for (LineItem* line : parser.lines()) {
