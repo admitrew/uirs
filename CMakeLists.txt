@@ -20,6 +20,7 @@ add_executable(therion_preview
     src/core/TherionTypes.cpp
     src/parser/Th2Writer.cpp
     src/ui/EditorMainWindow.cpp
+    src/ui/MapView.cpp
 )
 
 target_link_libraries(therion_preview

@@ -1,12 +1,12 @@
 #include "EditorMainWindow.h"
 #include "MapScene.h"
+#include "MapView.h"
 #include "PointItem.h"
 #include "LineItem.h"
 
 #include "../parser/Th2Parser.h"
 #include "../parser/Th2Writer.h"
 
-#include <QGraphicsView>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QMenuBar>
@@ -37,7 +37,8 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
     m_scene = new MapScene(this);
-    m_view = new QGraphicsView(m_scene, this);
+    m_view = new MapView(this);
+    m_view->setScene(m_scene);
 
     m_view->setRenderHint(QPainter::Antialiasing);
     m_view->setFocusPolicy(Qt::StrongFocus);
@@ -212,6 +213,9 @@ void EditorMainWindow::createToolBar()
     m_showPropertiesAction = toolBar->addAction("Свойства");
     m_showPropertiesAction->setToolTip("Показать панель свойств выбранного объекта");
 
+    m_fitToViewAction = toolBar->addAction("Показать всё");
+    m_fitToViewAction->setToolTip("Подогнать карту под размер окна");
+
     connect(m_selectToolAction, &QAction::triggered, this, &EditorMainWindow::setSelectMode);
 
     connect(m_addPointToolAction, &QAction::triggered, this, [this]() {
@@ -224,6 +228,9 @@ void EditorMainWindow::createToolBar()
 
     connect(m_showPropertiesAction, &QAction::triggered,
             this, &EditorMainWindow::showPropertiesPanel);
+
+    connect(m_fitToViewAction, &QAction::triggered,
+            this, &EditorMainWindow::fitSceneToView);
 
     connect(m_pointTypeCombo, &QComboBox::currentTextChanged, this, [this](const QString& type) {
         if (m_addPointToolAction && m_addPointToolAction->isChecked()) {
@@ -529,6 +536,7 @@ void EditorMainWindow::newTh2File()
     m_scene->clear();
     m_scene->setSceneRect(QRectF(-500, -500, 1000, 1000));
     m_view->centerOn(0, 0);
+    m_view->resetTransform();
 
     m_headerLines.clear();
     m_headerLines << "encoding utf-8";
@@ -673,8 +681,12 @@ void EditorMainWindow::fitSceneToView()
     QRectF rect = m_scene->itemsBoundingRect();
 
     if (rect.isEmpty()) {
+        m_view->resetTransform();
+        m_view->centerOn(0, 0);
         return;
     }
+
+    m_view->resetTransform();
 
     m_scene->setSceneRect(rect.adjusted(-50, -50, 50, 50));
 

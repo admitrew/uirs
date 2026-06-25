@@ -4,7 +4,6 @@
 #include <QString>
 #include <QStringList>
 
-class QGraphicsView;
 class QAction;
 class QComboBox;
 class QDockWidget;
@@ -12,6 +11,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class MapScene;
+class MapView;
 class QCloseEvent;
 
 class EditorMainWindow : public QMainWindow
@@ -58,12 +58,13 @@ private:
     void setModified(bool modified);
 
     MapScene* m_scene;
-    QGraphicsView* m_view;
+    MapView* m_view;
 
     QAction* m_selectToolAction = nullptr;
     QAction* m_addPointToolAction = nullptr;
     QAction* m_addLineToolAction = nullptr;
     QAction* m_showPropertiesAction = nullptr;
+    QAction* m_fitToViewAction = nullptr;
 
     QComboBox* m_pointTypeCombo = nullptr;
     QComboBox* m_lineTypeCombo = nullptr;
