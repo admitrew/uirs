@@ -8,4 +8,7 @@ class MapScene : public QGraphicsScene
 
 public:
     explicit MapScene(QObject* parent = nullptr);
+
+protected:
+    void keyPressEvent(QKeyEvent* event) override;
 };

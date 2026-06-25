@@ -131,6 +131,11 @@ void PointItem::paint(QPainter* painter,
     } else {
         painter->drawEllipse(r);
     }
+    if (isSelected()) {
+        painter->setPen(QPen(Qt::black, 2, Qt::DashLine));
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRect(rect().adjusted(-2, -2, 2, 2));
+    }   
 }
 
 void PointItem::updateToolTip()

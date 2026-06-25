@@ -21,6 +21,8 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
     m_view = new QGraphicsView(m_scene, this);
 
     m_view->setRenderHint(QPainter::Antialiasing);
+    m_view->setFocusPolicy(Qt::StrongFocus);
+    m_view->setFocus();
 
     setCentralWidget(m_view);
     resize(1000, 700);

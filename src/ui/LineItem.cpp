@@ -2,6 +2,8 @@
 #include "StyleManager.h"
 
 #include <QPainterPath>
+#include <QPainter>
+#include <QPen>
 
 LineItem::LineItem(const QString& therionType,
                    const QString& options)
@@ -9,6 +11,7 @@ LineItem::LineItem(const QString& therionType,
       m_options(options)
 {
     setPen(StyleManager::linePen(m_type));
+    setFlag(QGraphicsItem::ItemIsSelectable);
     setAcceptHoverEvents(true);
     updateToolTip();
 }
@@ -27,8 +30,10 @@ LineItem::LineItem(const QVector<QPointF>& points,
     }
 
     setPen(StyleManager::linePen(m_type));
+    setFlag(QGraphicsItem::ItemIsSelectable);
     setAcceptHoverEvents(true);
     updateToolTip();
+
     rebuildPath();
 }
 
@@ -40,8 +45,10 @@ LineItem::LineItem(const QVector<LineNode>& nodes,
       m_nodes(nodes)
 {
     setPen(StyleManager::linePen(m_type));
+    setFlag(QGraphicsItem::ItemIsSelectable);
     setAcceptHoverEvents(true);
     updateToolTip();
+
     rebuildPath();
 }
 
@@ -87,15 +94,15 @@ void LineItem::setTherionType(const QString& therionType)
     updateToolTip();
 }
 
+QString LineItem::options() const
+{
+    return m_options;
+}
+
 void LineItem::setOptions(const QString& options)
 {
     m_options = options;
     updateToolTip();
-}
-
-QString LineItem::options() const
-{
-    return m_options;
 }
 
 void LineItem::rebuildPath(const QPointF* previewPoint)
@@ -138,6 +145,41 @@ void LineItem::rebuildPath(const QPointF* previewPoint)
     setPath(path);
 }
 
+void LineItem::updateToolTip()
+{
+    QString text = "line " + m_type;
+
+    if (!m_options.trimmed().isEmpty()) {
+        text += " " + m_options.trimmed();
+    }
+
+    setToolTip(text);
+}
+
+void LineItem::paint(QPainter* painter,
+                     const QStyleOptionGraphicsItem* option,
+                     QWidget* widget)
+{
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
+
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->setBrush(Qt::NoBrush);
+
+    if (isSelected()) {
+        QPen selectionPen(Qt::blue);
+        selectionPen.setWidthF(pen().widthF() + 4.0);
+        selectionPen.setStyle(Qt::SolidLine);
+        selectionPen.setCosmetic(true);
+
+        painter->setPen(selectionPen);
+        painter->drawPath(path());
+    }
+
+    painter->setPen(pen());
+    painter->drawPath(path());
+}
+
 QString LineItem::toTh2() const
 {
     QString result = "line " + m_type;
@@ -158,35 +200,24 @@ QString LineItem::toTh2() const
             QPointF p = node.points.first();
 
             result += QString("  %1 %2\n")
-                .arg(p.x())
-                .arg(-p.y());
+                .arg(p.x(), 0, 'g', 15)
+                .arg(-p.y(), 0, 'g', 15);
         } else if (node.kind == LineNode::Kind::Bezier && node.points.size() == 3) {
             QPointF c1 = node.points[0];
             QPointF c2 = node.points[1];
             QPointF end = node.points[2];
 
             result += QString("  %1 %2 %3 %4 %5 %6\n")
-                .arg(c1.x())
-                .arg(-c1.y())
-                .arg(c2.x())
-                .arg(-c2.y())
-                .arg(end.x())
-                .arg(-end.y());
+                .arg(c1.x(), 0, 'g', 15)
+                .arg(-c1.y(), 0, 'g', 15)
+                .arg(c2.x(), 0, 'g', 15)
+                .arg(-c2.y(), 0, 'g', 15)
+                .arg(end.x(), 0, 'g', 15)
+                .arg(-end.y(), 0, 'g', 15);
         }
     }
 
     result += "endline\n";
 
     return result;
-}
-
-void LineItem::updateToolTip()
-{
-    QString text = "line " + m_type;
-
-    if (!m_options.trimmed().isEmpty()) {
-        text += " " + m_options.trimmed();
-    }
-
-    setToolTip(text);
 }

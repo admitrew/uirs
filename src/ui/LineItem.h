@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QPointF>
 #include <QString>
+#include <QPainter>
 
 #include "../core/Th2Serializable.h"
 
@@ -46,6 +47,11 @@ public:
     void setOptions(const QString& options);
 
     QString toTh2() const override;
+
+protected:
+    void paint(QPainter* painter,
+               const QStyleOptionGraphicsItem* option,
+               QWidget* widget = nullptr) override;
 
 private:
     void rebuildPath(const QPointF* previewPoint = nullptr);
