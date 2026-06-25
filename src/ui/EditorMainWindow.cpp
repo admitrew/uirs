@@ -31,6 +31,7 @@
 #include <QList>
 #include <QFileInfo>
 #include <QCloseEvent>
+#include <QRectF>
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -61,8 +62,7 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
             });
 
     setSelectMode();
-    updatePropertiesPanel();
-    updateWindowTitle();
+    newTh2File();
 }
 
 void EditorMainWindow::closeEvent(QCloseEvent* event)
@@ -84,6 +84,9 @@ void EditorMainWindow::createFileMenu()
 {
     QMenu* fileMenu = menuBar()->addMenu("Файл");
 
+    QAction* newAction = fileMenu->addAction("Новый");
+    newAction->setShortcut(QKeySequence::New);
+
     QAction* openAction = fileMenu->addAction("Открыть .th2");
     openAction->setShortcut(QKeySequence::Open);
 
@@ -93,6 +96,7 @@ void EditorMainWindow::createFileMenu()
     QAction* saveAsAction = fileMenu->addAction("Сохранить как .th2");
     saveAsAction->setShortcut(QKeySequence::SaveAs);
 
+    connect(newAction, &QAction::triggered, this, &EditorMainWindow::newTh2File);
     connect(openAction, &QAction::triggered, this, &EditorMainWindow::openTh2File);
     connect(saveAction, &QAction::triggered, this, &EditorMainWindow::saveCurrentFile);
     connect(saveAsAction, &QAction::triggered, this, &EditorMainWindow::saveTh2FileAs);
@@ -511,6 +515,37 @@ bool EditorMainWindow::maybeSaveCurrentFile()
     }
 
     return false;
+}
+
+void EditorMainWindow::newTh2File()
+{
+    if (!maybeSaveCurrentFile()) {
+        return;
+    }
+
+    m_isLoadingFile = true;
+
+    m_scene->cancelCurrentLine();
+    m_scene->clear();
+    m_scene->setSceneRect(QRectF(-500, -500, 1000, 1000));
+    m_view->centerOn(0, 0);
+
+    m_headerLines.clear();
+    m_headerLines << "encoding utf-8";
+
+    m_scrapLine = "scrap scrap1 -projection plan";
+    m_endScrapLine = "endscrap";
+    m_areaBlocks.clear();
+
+    m_currentFilePath.clear();
+
+    m_isLoadingFile = false;
+
+    setModified(false);
+    updatePropertiesPanel();
+    updateWindowTitle();
+
+    statusBar()->showMessage("Создан новый .th2 файл");
 }
 
 void EditorMainWindow::openTh2File()

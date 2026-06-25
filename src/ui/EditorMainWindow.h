@@ -31,6 +31,7 @@ private:
     void createToolBar();
     void createPropertiesPanel();
 
+    void newTh2File();
     void openTh2File();
     bool saveCurrentFile();
     bool saveTh2FileAs();
