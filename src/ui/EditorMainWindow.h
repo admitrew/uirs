@@ -27,4 +27,5 @@ private:
     QStringList m_headerLines;
     QString m_scrapLine;
     QString m_endScrapLine;
+    QStringList m_areaBlocks;
 };

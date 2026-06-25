@@ -18,6 +18,7 @@ public:
     const QStringList& headerLines() const;
     QString scrapLine() const;
     QString endScrapLine() const;
+    const QStringList& areaBlocks() const;
 
 private:
     QVector<LineItem*> m_lines;
@@ -26,4 +27,5 @@ private:
     QStringList m_headerLines;
     QString m_scrapLine;
     QString m_endScrapLine;
+    QStringList m_areaBlocks;
 };

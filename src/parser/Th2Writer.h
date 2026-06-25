@@ -14,5 +14,6 @@ public:
                       const QString& filePath,
                       const QStringList& headerLines,
                       const QString& scrapLine,
-                      const QString& endScrapLine);
+                      const QString& endScrapLine,
+                      const QStringList& areaBlocks = QStringList());
 };

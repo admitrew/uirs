@@ -42,23 +42,30 @@ bool Th2Parser::parseFile(const QString& filePath)
 
     m_lines.clear();
     m_points.clear();
+
     m_headerLines.clear();
     m_scrapLine.clear();
     m_endScrapLine.clear();
+    m_areaBlocks.clear();
 
     QTextStream in(&file);
 
     bool inScrap = false;
     bool inLine = false;
+    bool inArea = false;
 
     QString currentLineType;
     QString currentLineOptions;
     QVector<LineNode> currentLineNodes;
 
+    QStringList currentAreaBlock;
+
     while (!in.atEnd()) {
         QString rawLine = in.readLine();
         QString line = rawLine.trimmed();
 
+        // Всё до scrap сохраняем как заголовок файла:
+        // encoding, ##XTHERION## и другие служебные строки.
         if (!inScrap) {
             if (line.startsWith("scrap ")) {
                 m_scrapLine = line;
@@ -67,6 +74,26 @@ bool Th2Parser::parseFile(const QString& filePath)
             }
 
             m_headerLines.append(rawLine);
+            continue;
+        }
+
+        // Сохраняем area ... endarea как сырой блок.
+        if (inArea) {
+            currentAreaBlock.append(rawLine);
+
+            if (line == "endarea") {
+                m_areaBlocks.append(currentAreaBlock.join("\n"));
+                currentAreaBlock.clear();
+                inArea = false;
+            }
+
+            continue;
+        }
+
+        if (line.startsWith("area ")) {
+            currentAreaBlock.clear();
+            currentAreaBlock.append(rawLine);
+            inArea = true;
             continue;
         }
 
@@ -96,6 +123,8 @@ bool Th2Parser::parseFile(const QString& filePath)
                 bool okX = false;
                 bool okY = false;
 
+                // Основной формат Therion:
+                // point x y type [options]
                 x = parts[1].toDouble(&okX);
                 y = parts[2].toDouble(&okY);
 
@@ -103,6 +132,8 @@ bool Th2Parser::parseFile(const QString& filePath)
                     pointType = parts[3];
                     pointOptions = collectOptions(parts, 4);
                 } else {
+                    // Поддержка старого тестового формата:
+                    // point type x y [options]
                     pointType = parts[1];
 
                     x = parts[2].toDouble(&okX);
@@ -218,4 +249,9 @@ QString Th2Parser::scrapLine() const
 QString Th2Parser::endScrapLine() const
 {
     return m_endScrapLine;
+}
+
+const QStringList& Th2Parser::areaBlocks() const
+{
+    return m_areaBlocks;
 }

@@ -10,14 +10,15 @@
 
 void Th2Writer::write(QGraphicsScene* scene, const QString& filePath)
 {
-    write(scene, filePath, QStringList(), "scrap scrap1", "endscrap");
+    write(scene, filePath, QStringList(), "scrap scrap1", "endscrap", QStringList());
 }
 
 void Th2Writer::write(QGraphicsScene* scene,
                       const QString& filePath,
                       const QStringList& headerLines,
                       const QString& scrapLine,
-                      const QString& endScrapLine)
+                      const QString& endScrapLine,
+                      const QStringList& areaBlocks)
 {
     if (!scene) {
         return;
@@ -53,6 +54,18 @@ void Th2Writer::write(QGraphicsScene* scene,
 
         if (th2Item) {
             out << th2Item->toTh2() << "\n";
+        }
+    }
+
+    for (const QString& areaBlock : areaBlocks) {
+        if (!areaBlock.trimmed().isEmpty()) {
+            out << areaBlock;
+
+            if (!areaBlock.endsWith("\n")) {
+                out << "\n";
+            }
+
+            out << "\n";
         }
     }
 

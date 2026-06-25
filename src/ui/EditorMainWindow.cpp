@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QMenuBar>
 #include <QAction>
+#include <QKeySequence>
 #include <QTimer>
 #include <QPainter>
 #include <QDebug>
@@ -42,6 +43,22 @@ void EditorMainWindow::createMenus()
     connect(saveAsAction, &QAction::triggered, this, &EditorMainWindow::saveTh2FileAs);
 }
 
+void EditorMainWindow::openTh2File()
+{
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        "Открыть файл Therion",
+        QString(),
+        "Therion scraps (*.th2);;Все файлы (*.*)"
+    );
+
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    loadTh2File(filePath);
+}
+
 void EditorMainWindow::saveTh2FileAs()
 {
     QString filePath = QFileDialog::getSaveFileName(
@@ -59,7 +76,16 @@ void EditorMainWindow::saveTh2FileAs()
         filePath += ".th2";
     }
 
-    Th2Writer::write(m_scene, filePath, m_headerLines, m_scrapLine, m_endScrapLine);
+    qDebug() << "Saving area blocks:" << m_areaBlocks.size();
+
+    Th2Writer::write(
+        m_scene,
+        filePath,
+        m_headerLines,
+        m_scrapLine,
+        m_endScrapLine,
+        m_areaBlocks
+    );
 
     qDebug() << "Файл сохранён:" << filePath;
 
@@ -68,22 +94,6 @@ void EditorMainWindow::saveTh2FileAs()
         "Сохранение завершено",
         "Файл сохранён:\n" + filePath
     );
-}
-
-void EditorMainWindow::openTh2File()
-{
-    QString filePath = QFileDialog::getOpenFileName(
-        this,
-        "Открыть файл Therion",
-        QString(),
-        "Therion scraps (*.th2);;Все файлы (*.*)"
-    );
-
-    if (filePath.isEmpty()) {
-        return;
-    }
-
-    loadTh2File(filePath);
 }
 
 void EditorMainWindow::loadTh2File(const QString& filePath)
@@ -102,6 +112,9 @@ void EditorMainWindow::loadTh2File(const QString& filePath)
     m_headerLines = parser.headerLines();
     m_scrapLine = parser.scrapLine();
     m_endScrapLine = parser.endScrapLine();
+    m_areaBlocks = parser.areaBlocks();
+
+    qDebug() << "Area blocks:" << m_areaBlocks.size();
 
     m_scene->clear();
 
