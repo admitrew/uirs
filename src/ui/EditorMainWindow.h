@@ -27,6 +27,7 @@ private:
 
     void setSelectMode();
     void setAddPointMode(const QString& pointType);
+    void setAddLineMode(const QString& lineType);
 
     MapScene* m_scene;
     QGraphicsView* m_view;

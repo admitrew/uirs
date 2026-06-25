@@ -25,6 +25,7 @@ EditorMainWindow::EditorMainWindow(QWidget* parent)
     m_view->setRenderHint(QPainter::Antialiasing);
     m_view->setFocusPolicy(Qt::StrongFocus);
     m_view->setFocus();
+    m_view->setMouseTracking(true);
 
     setCentralWidget(m_view);
     resize(1000, 700);
@@ -71,8 +72,10 @@ void EditorMainWindow::createToolsMenu()
 
     toolsMenu->addSeparator();
 
-    auto addPointAction = [this, toolsMenu, toolGroup](const QString& title, const QString& type) {
-        QAction* action = toolsMenu->addAction(title);
+    QMenu* pointMenu = toolsMenu->addMenu("Добавить point");
+
+    auto addPointAction = [this, pointMenu, toolGroup](const QString& title, const QString& type) {
+        QAction* action = pointMenu->addAction(title);
         action->setCheckable(true);
         toolGroup->addAction(action);
 
@@ -81,12 +84,32 @@ void EditorMainWindow::createToolsMenu()
         });
     };
 
-    addPointAction("Добавить point station", "station");
-    addPointAction("Добавить point label", "label");
-    addPointAction("Добавить point gradient", "gradient");
-    addPointAction("Добавить point water-flow", "water-flow");
-    addPointAction("Добавить point entrance", "entrance");
-    addPointAction("Добавить point stalagmite", "stalagmite");
+    addPointAction("station", "station");
+    addPointAction("label", "label");
+    addPointAction("gradient", "gradient");
+    addPointAction("water-flow", "water-flow");
+    addPointAction("entrance", "entrance");
+    addPointAction("stalagmite", "stalagmite");
+
+    QMenu* lineMenu = toolsMenu->addMenu("Добавить line");
+
+    auto addLineAction = [this, lineMenu, toolGroup](const QString& title, const QString& type) {
+        QAction* action = lineMenu->addAction(title);
+        action->setCheckable(true);
+        toolGroup->addAction(action);
+
+        connect(action, &QAction::triggered, this, [this, type]() {
+            setAddLineMode(type);
+        });
+    };
+
+    addLineAction("wall", "wall");
+    addLineAction("border", "border");
+    addLineAction("pit", "pit");
+    addLineAction("floor-step", "floor-step");
+    addLineAction("rock-border", "rock-border");
+    addLineAction("water-flow", "water-flow");
+    addLineAction("gradient", "gradient");
 }
 
 void EditorMainWindow::setSelectMode()
@@ -99,6 +122,12 @@ void EditorMainWindow::setAddPointMode(const QString& pointType)
 {
     m_scene->setAddPointMode(pointType);
     statusBar()->showMessage("Режим: добавление point " + pointType);
+}
+
+void EditorMainWindow::setAddLineMode(const QString& lineType)
+{
+    m_scene->setAddLineMode(lineType);
+    statusBar()->showMessage("Режим: добавление line " + lineType + " | ЛКМ — точка, ПКМ/Enter — завершить, Esc — отменить");
 }
 
 void EditorMainWindow::openTh2File()
